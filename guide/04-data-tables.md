@@ -52,13 +52,14 @@ table you change **both** games.
 
 | Table | Sheet | What it holds |
 |---|---|---|
-| `digimon_common_para` | `digimon` | The core record: `level` (stage), `attribute`, `type`, `fieldGuideId`, + 21 unknown fields. 347 rows. |
+| `digimon_common_para` | `digimon` | The core record: `level` (stage), `attribute`, `type`, `fieldGuideId`, + 20 unknown fields. 375 rows. |
 | `mon_para` | `Monster` | Stats per `(type, variation)`: `baseHP/ATK/DEF/INT/SPD`, `levelHP/…` growth, per-status resistances, `EXP`, `YEN`, drops. |
 | `mon_para_hard` | | The hard-mode statline. |
-| `digimon_list` | `digimon` | A bare list of live IDs (352 rows). Presence here matters. |
+| `digimon_list` | `digimon` | A bare list of live IDs (351 rows). Presence here matters. |
 | `lvup_para` | `table` | Growth-rate profiles: `HP,SP,ATK,DEF,INT,SPD` percentages. |
 | `personality_para` | | Personality stat modifiers. |
-| `mon_design_para`, `mon_cpl` | | Appearance / support data. |
+| `mon_design_para` | | Appearance data. Keyed on the **first 2 cells**. |
+| `mon_cpl` | `Coupling` | Enemy groups for encounters and scripted battles — see above. |
 | `text/charname` | `Digimon Names` | Names in JP/EN/ZH/EN-censored/KR/DE, keyed by **4ID**. |
 | `text/digimon_book_explanation` | | Field Guide text. |
 
@@ -129,12 +130,19 @@ highlights:
 - `digimon_common_para`: `unk1` / `fieldGuideId` / `unk19` / `unk20` are the **per-region
   Field Guide numbers** (JP / US / EU / ASIA); `unk3` is generation sorting.
 - `mon_para/Monster` `unk16` = `battle_ai`.
-- `map_encount_param(_add)/Field`: `unk1` is the map ID, `unk6`-`unk15` are ten slots of
-  **(coupling ID, quest flag, trigger chance %)**. A **coupling** is an enemy group of up to
-  six enemies, defined in `mon_coupling_para`.
-- `join_digimon_para`: `unk1` join level, `unk2` conditions, `unk3`-`unk6` four moves,
-  `unk7` starting ABI.
-- `battle_effect/effect.csv` `unk15` = Sound Effect ID into `battle_se`.
+- `map_encount_param(_add)/Field` (16 columns, already named): `map_id`, `battlefield_id`,
+  then ten `coupling_unk_pctchance_N` slots. **Each slot packs three values into one cell,
+  space-separated** — `61 0 5` is coupling 61, flag 0, 5% — and the empty padding is `-1 0 0`,
+  not `0`. Pass `-1` as the padding argument if you use `mberecord_append` here.
+- A **coupling** is an enemy group, and the table is **`mon_cpl/Coupling`** (1947 rows, 25
+  columns) — *not* `mon_coupling_para`, which does not exist. Its columns are `id`,
+  `digi1`–`digi6`, **`level1`–`level6`**, `variation1`–`variation6`, `unk13`–`unk16`,
+  `NPC_id`, `NPC_Variation`. The per-enemy **levels live here**, so a custom battle whose
+  enemies come out at the wrong level is a `mon_cpl` problem, not a stat-table one.
+- `join_digimon_para/party` is already named — `id, digimon_id, level, unk2, Skill1..Skill4,
+  ABI`. (`guest` has 8 columns and a different shape.) The Discord-era `unk1..unk7` numbering
+  refers to an older dump; use your own header.
+- `battle_effect/effect.csv`: the last column is named `skillSFX` and points into `battle_se`.
 
 **The upstream source of truth for column names is DSCSTools' `structures/` folder.** Update
 it and re-extract and your CSV headers change — which is why two people can disagree about a

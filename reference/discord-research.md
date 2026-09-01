@@ -22,6 +22,12 @@ people can disagree about a column name — one of them has a stale dump.
 
 ## Decoded columns
 
+> **The `unk` numbers below are as posted in 2021–2022 and several are stale.** Upstream
+> `structures/` has since named many of those columns, so a fresh extraction shows
+> `map_id`/`coupling_unk_pctchance_N` where the chat says `unk1`/`unk6`–`unk15`, and
+> `Skill1..Skill4, ABI` where it says `unk3`–`unk7`. **Read your own header** with
+> `cshm.py head <table>`; treat the numbering here as history, not as an index.
+
 ### `digimon_common_para` — the sort fields (SydMontague, Dec 2022)
 
 The four "unknown" numbers next to `fieldGuideId` are **per-region Field Guide numbers**:
@@ -40,8 +46,10 @@ Piyomon, Myotismon as Vamdemon).
 
 ### Encounters
 
-- **Coupling** = an enemy group for one battle: up to 6 enemy IDs plus variant IDs. Defined
-  in `mon_coupling_para`, referring to chr IDs + variant IDs in `mon_para` / `mon_para_hard`.
+- **Coupling** = an enemy group for one battle. The table is **`mon_cpl/Coupling`** (1947
+  rows) — the Discord called it `mon_coupling_para`, which does not exist in the shipped data.
+  Columns: `id`, `digi1`–`digi6`, **`level1`–`level6`**, `variation1`–`variation6`,
+  `unk13`–`unk16`, `NPC_id`, `NPC_Variation`. The per-enemy **levels live here**.
 - `map_encount_param(_add)/Field`: `unk1` is the **map ID** (`101` → `d0101`, `1101` →
   `d1101`); `unk6`–`unk15` are ten slots of **(coupling ID, flag, percentage trigger
   chance)**. The flag looks like a quest flag — a battle whose flag is unset falls back to

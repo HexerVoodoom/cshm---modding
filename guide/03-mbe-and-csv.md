@@ -55,8 +55,10 @@ hand-edit those with `merge` unless you have counted the padding.
 - `modfiles/data/charname.mbe/Digimon Names.csv` → recognised as an **MBE table**.
 - `modfiles/data/charname/Digimon Names.csv` → recognised as a plain **CSV**.
 
-The `.mbe` in the folder name is the switch. Getting it wrong is a silent failure: the file
-installs, and nothing changes.
+The `.mbe` in the folder name is the switch, and getting it wrong is a silent failure. It is
+not that the merge rule changes — a loose CSV still defaults to `mberecord_merge`. It is that
+the **target path no longer exists**: SDMM merges your file into `data/charname/Sheet1.csv`,
+a path the game never reads. The file installs, the build succeeds, nothing changes.
 
 ## Rules for editing
 

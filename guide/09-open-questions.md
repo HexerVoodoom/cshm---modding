@@ -67,3 +67,19 @@ file when something moves from claim to fact.
 - **`#dscs-3d-modelling` from Jul 2022 to Mar 2023** was not scraped, nor `#dscs-tools`,
   `#dscs-beta_tests`, `#dscs-mod_*`, nor the live `#modding` / `#projects` scrollback.
 - **The `join () takes exactly one argument (2 given)` build error** — still open upstream.
+
+
+## Raised by the squad-alpha audit (2026-09-01)
+
+- **Does SDMM match an MBE sheet by filename?** 124 corpus mods write
+  `text/charname.mbe/Sheet1.csv` instead of `Digimon Names.csv` and appear to work, which
+  suggests the name is ignored for a **single-sheet** table. Unproven, and it says nothing
+  about multi-sheet tables. Testable: build one mod each way and look at the name in game.
+- **`text/skill_name.mbe` has two sheets** — `Sheet1.csv` and `skill name.csv`, both 935 rows.
+  Which one the game reads is unknown. Patch both until someone checks.
+- **`digimon_common_para` `unk6, 8, 10, 12, 14`** are described upstream as per-language name
+  sort values, but they are stored on the Digimon instance, which does not fit. Unresolved.
+- **`model_attach_para/npc.csv` has a 5-cell composite key** (per SDMM's
+  `config/mberecord_idsizes.json`). What the five cells are has not been decoded.
+- **Blender 2.92** has the DSCS addon installed on this machine but sits outside the addon's
+  stated 2.80–2.91 range. Whether it actually works is untested; the guide now says use 2.83.

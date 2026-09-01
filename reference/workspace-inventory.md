@@ -20,8 +20,9 @@ Surveyed 2026-09-01. Author handle: **Mojoceramon AKA HexerVoodoom**.
 | Blender **2.92** | addons: **Blender-Tools-for-DSCS** *and* `Blender-Tools-for-DSCS-develop` |
 | Blender 4.1 / 4.2 / 4.5 / 5.1 | Time Stranger and general work — **no DSCS addon** |
 
-For anything DSCS, use **2.83 or 2.92**. The DSCS addon is not installed on any modern
-Blender here.
+The addon supports **2.80–2.91**, so **use 2.83**. The 2.92 install has the addon but sits
+outside the supported range — the Discord's own advice is that the tools "work with 2.80-2.91
+inclusive". No modern Blender here has the DSCS addon.
 
 ## The user's own mods
 

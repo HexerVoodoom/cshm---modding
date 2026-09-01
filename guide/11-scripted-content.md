@@ -99,8 +99,8 @@ Then start it from anywhere:
 this.Battle.Encount(603535, 600);   // battle number, battle map
 ```
 
-The enemy line-up is **not** in the script — it comes from the coupling tables
-(`mon_coupling_para`, `map_encount_param`). See
+The enemy line-up is **not** in the script — it comes from **`mon_cpl/Coupling`** (the enemy
+group, including each enemy's **level**) and `map_encount_param`. See
 [04-data-tables.md](04-data-tables.md#decoded-unk-columns).
 
 The battle script's own lifecycle is `Battle_Init()` (BGM starts here) → `Battle_Boot()` →

@@ -52,16 +52,16 @@ error.
 |---|---|
 | `digimon_list.mbe/digimon.csv` | One cell — the ID exists. |
 | `digimon_common_para.mbe/digimon.csv` | Stage (`level`), `attribute`, `type`, `fieldGuideId` → a `[DigimonText::…]` softcode. |
-| `mon_para.mbe/Monster.csv` | The statline, keyed `(type, variation)` — note the `1` in cell 2. |
+| `mon_para.mbe/Monster.csv` | The statline, **keyed on the first 2 cells** `(type, variation)` — note the `1` in cell 2. `mon_design_para/Monster` is composite too. |
 | `mon_para_hard.mbe/Monster.csv` | The hard-mode statline. Ship both. |
 | `mon_design_para.mbe/Monster.csv` | 9 columns, last one a float (1.2 in both entries). |
-| `model_default_scale.mbe/digimon.csv` | `fieldGuideScale, battleScale, fieldScale, Uk4, Uk5`. Samudramon is 9/9/6.2; Durandamon 0.7/0.7/0.7. **This is where a new model comes out giant or microscopic.** |
-| `model_attach_para.mbe/digimon01..03.csv` | Three sheets, each a bone attachment: `J_head` plus offset, rotation and scale. |
-| `digimon_farm_para.mbe/digimon.csv` | DigiFarm entry, and the skill-learn table (`level, skillId` pairs). |
+| `model_default_scale.mbe/digimon.csv` | Six columns: **`digimonID`**, `fieldGuideScale`, `battleScale`, `fieldScale`, `Uk4`, `Uk5`. Samudramon is 9/9/6.2; Durandamon 0.7/0.7/0.7. **This is where a new model comes out giant or microscopic** — and where omitting the ID column shifts every value one cell left. |
+| `model_attach_para.mbe/digimon01..03.csv` | Three sheets, each a bone attachment: `J_head` plus offset, rotation and scale. **Keyed on the first 2 cells** — a merge matching cell 1 alone hits the wrong row. |
+| `digimon_farm_para.mbe/digimon.csv` | 34 columns: `memoryUse`, `growthType`, `baseHP/SP/ATK/DEF/INT/SPD`, `maxLevel`, `equipSlots`, `supportSkill`, then the learnset as **`(skill, level)`** pairs — `sMove1, sMove1Level, sMove2, sMove2Level` for the Special Skills and `move1, move1Level` … `move6, move6Level` for the rest. **Skill first, level second.** Reversed, the Digimon learns skill 1 at level 101 and never learns anything, with no error. |
 | `degeneration_para.mbe/digimon.csv` | De-digivolution target (`744` = the donor). |
 | `evolution_next_para.mbe/digimon.csv` | **Two rows**: the donor gains the new ID as a target, *and* the new ID gets its own (empty) row. |
 | `evolution_condition_para.mbe/digimon.csv` | The `(condType, condValue, condUnk)` gate — Samudramon uses 5 of the 10 slots. |
-| `skill_use_group_set.mbe/digimon.csv` | 30 flags controlling which skill groups it may use. |
+| `skill_use_group_set.mbe/digimon.csv` | 31 columns: `digimonID`, **20 flags** (`Unk1`–`Unk20`) and 10 padding cells. |
 | `battle_command.mbe/Command.csv` | The custom skill, `[Skill::…]` → `[SkillText::…]`. |
 | `battle_command_effect.mbe/effect.csv` | Links the skill to `[SkillEffect::…]`. |
 | `battle_effect.mbe/effect.csv` | Points the effect at the model `eff_bts_[Digimon::Key::filename()]_bs01`. |
@@ -91,18 +91,25 @@ matches three sheets per Digimon.
 `charname`, `digimon_book_explanation`, `skill_name`, `skill_content_name` — every language
 column filled with the same string in the reference mod.
 
-> **Watch the sheet name.** Vanilla `text/charname.mbe` has a single sheet called
-> **`Digimon Names.csv`**, not `Sheet1.csv`. The other three text tables *do* use `Sheet1`.
-> A mod that writes `charname.mbe/Sheet1.csv` is very likely a silent no-op — the Digimon
-> ends up nameless. Verify with `python tools/cshm.py sheets <table>` before writing.
+> **Watch the sheet name.** Vanilla `text/charname.mbe` has a single sheet, `Digimon
+> Names.csv`. 124 mods in the corpus write `Sheet1.csv` there and appear to work, so SDMM
+> probably tolerates a wrong name when the table has only one sheet — `UNVERIFIED`, and
+> matching costs nothing.
+>
+> Where it genuinely bites is a table with **several** sheets, because then the merge cannot
+> guess. `text/skill_name.mbe` has **two** — `Sheet1.csv` and `skill name.csv`, both 935 rows.
+> Which one the game reads is unknown: patch both.
+>
+> Check first: `python "D:/digimon modding claude/cshm-modding/tools/cshm.py" sheets <table>`.
 
 ## The model set
 
 Per Digimon, at the top level of `modfiles/` (no folder):
 
 - Base: `<Stem>.name/.skel/.geom/.anim`
-- Battle overlays: `_ba01 _ba02 _bd01 _bd02 _bd03 _bg01 _bn01 _br01 _bs01 _bs02 _bv01`
-- Field: `_fa01 _fe01` (the rest fall back to the battle animations)
+- Battle overlays: `_ba01 _ba02 _bd01 _bd02 _bd03 _bg01 _bn01 _br01 _bs01 _bv01` — that is
+  what a vanilla `chr` actually ships. Add `_bs02` only for a **second** Special Skill.
+- Field: `_fe01`. `_fa01` is not vanilla-standard; the rest fall back to the battle animations.
 - Attack cameras: `cam_<Stem>_bs01_pc` / `_bs01_em` / `_bs02_pc` / `_bs02_em` / `_bv01`,
   each a full four-file model. `_pc` and `_em` are the player-side and enemy-side cameras.
 - Attack effects: `eff_bts_<Stem>_bs01` / `_bs02`, each a full four-file model.
@@ -140,7 +147,7 @@ references — that is exactly how the *Chaos* mods make greyscale versions of W
 and MetalSeadramon's attacks. Copy every `eff_*.img` the model names, recolour, ship them
 under a distinguishing prefix, and point the cloned model at the new names.
 
-Passive skills are `battle_support_skill/support_skill.csv`, a fully named 58-column table
+Passive skills are `battle_support_skill/support_skill.csv`, a fully named 59-column table
 covering every stat, element, status chance and resistance, plus `EXP Boost`, `Drop Rate`,
 `Scan Rate`, `moveFirst` and `HP to ATK`.
 
@@ -151,7 +158,8 @@ under `"FormatVersion": 2`, register it in `data/voice.csv`, and add the same ro
 
 ## Order of work
 
-1. Model in Blender (Blender-Tools-for-DSCS, 2.83 or 2.92 on this machine) → export the
+1. Model in **Blender 2.83** — the addon supports 2.80–2.91 and 2.83 is the only install on
+   this machine inside that range (2.92 has the addon but is out of range) → export the
    four base files and every overlay animation.
 2. Textures → `images/`.
 3. `digimon_list` + `digimon_common_para` + `mon_para` + `mon_para_hard` — it exists and has stats.

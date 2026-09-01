@@ -31,9 +31,15 @@ Both, plus every export error and its cause, are in
 
 ## Naming is the API — and `BUILD.json` is how you satisfy it
 
-The game locates models **by filename**: `chr009` is Digimon 9 because ID 9 is 9. There is no
-table that says "Digimon 9 uses this model". A custom Digimon's files must end up named
-`chr<its id>.*` or the game will never load them.
+The game locates a Digimon's **meshes** by filename: `chr009` is Digimon 9 because ID 9 is 9.
+A custom Digimon's mesh files must end up named `chr<its id>.*` or the game will never load
+them.
+
+**Animations are the exception.** `data/same_animation_data.mbe` is exactly a table saying
+"this ID uses that model's animations" — `digimon.csv` (37 rows) for Digimon and `pc.csv`
+(162 rows) for player characters, both `ID → model`. It is the second most-patched table in
+the whole 253-mod corpus. If all you want is to reuse a donor's animation set, that is one
+CSV row, not a rename of every `.anim`.
 
 You do **not** name your files that way in the mod folder, because the ID is not known until
 SDMM assigns it. You author them under any readable stem and let **`BUILD.json` rename them

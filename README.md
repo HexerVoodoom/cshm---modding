@@ -79,8 +79,10 @@ Media.Vision's engine and share the MDB1 archive format, the `.mbe` table format
 
 ### The squad
 
-Agent definitions live in `../.claude/agents/cshm-*.md` (shared with the Time Stranger
-workspace). See [guide/00-orientation.md](guide/00-orientation.md#the-squad) for who does what.
+Agent definitions live in `../.claude/agents/cshm-*.md` and skills in
+`../.claude/skills/cshm-*/`, shared with the Time Stranger workspace.
+**[guide/00-orientation.md](guide/00-orientation.md#the-squad) is the single roster** — who
+owns which question, and which skill carries which procedure. Do not duplicate it here.
 
 ---
 

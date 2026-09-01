@@ -160,8 +160,10 @@ if the diff is small, it is a `.sqmod`.**
 
 `.../mods/Playable Rina`. Not a new Digimon at all — it rides the **costume system**.
 
-- **`item_para` rows 800–899, `itemType` 3, are the costumes.** (The Discord's "player
-  costumes must have an ID between 800 and 900" rule.) The three columns
+- **The costumes are `item_para` rows 801–845.** There is no row 800, and `itemType` 3 alone
+  does not identify a costume — rows 901–905 are also type 3 with empty skin columns. The
+  Discord's "player costumes must have an ID between 800 and 900" is the ID *range* the game
+  enforces, not the set of rows that exist. The three columns
   `keisukeSkin` / `takumiSkin` / `amiSkin` name the **model prefix** each protagonist wears
   when that costume is equipped. `skinFlag` is the unlock flag; `iconId` is 101 for all of them.
 - Rina goes playable by pointing one of those columns at her NPC model:
