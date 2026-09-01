@@ -26,7 +26,15 @@ digits and prefixes `npc_`.
    ```
 
    Rotation is a quaternion in **WXYZ** order. SDMM expands one `.mdledit` into four edits
-   (`mdledit_name/skel/geom/anim`). If the map has a `.phys`, ship it alongside.
+   (`mdledit_name/skel/geom/anim`). If the map has a `.phys`, `.request` it rather than
+   shipping a copy.
+
+   **Do not guess the coordinates.** The map's `p` model already tells you every valid spot:
+   `<map>p.name` lists the locators (`start_NN` player spawns, `npc_NNNN` NPC slots,
+   `obj_gk_NNNN` objects, `ragdoll_evt_NNNN`) and `<map>p.skel` holds their rest positions —
+   records of 12 floats with the position at offset +9. Read them, then place your NPC at, or
+   mirrored from, a vanilla `npc_` locator and check its clearance from every `obj_gk_`. Rooms
+   are typically symmetric, so a reflected NPC position is proven ground.
 
 2. **A definition.** A row in `data/field_npc_para<_add>.mbe/<mapId>.csv` — **one sheet per
    map**. The columns that matter: `id` (the softcode), `name1` (the **bone name**), `model`
