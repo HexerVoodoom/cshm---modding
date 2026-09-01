@@ -141,6 +141,27 @@ data/battle_effect/effect.csv           effectID -> skillEffModel, skillSFX (-> 
 text/skill_name, text/skill_content_name
 ```
 
+### The skill columns, decoded
+
+Derived from the shipped data by correlating every `battle_command` row against its own
+English description — so these are measured, not inferred:
+
+| Column | Meaning |
+|---|---|
+| `Type` | **The element.** 0 Neutral · 1 Fire · 2 Water · 3 Plant · 4 Electric · 5 Earth · 6 Wind · 7 Light · 8 Dark |
+| `DamageType` | **1 = physical, 2 = magic.** It is *not* the element. |
+| `TargetType` | 4 one foe · 5 all foes · 2 one ally · 3 all allies |
+| `NumAttacksMin/Max` | The hit count the description quotes; set both equal for a fixed number. |
+| `StatusType` | 1 Poison · 2 Confusion · 3 Paralysis · 4 Sleep · 5 Stun · 7 Bug · 8 Death. May be a **space-separated list**. |
+| `StatusEffect` / `StatusChance` | Strength (10 is the common value) and percent chance. |
+
+`battle_effect` rows follow a strict shape — `skillEffModel` is written **uppercase** in the
+CSV (`EFF_BTS_chr682_RS`) while the file on disk is lowercase, so the lookup is
+case-insensitive. `unk2` is 3 for a caster effect and 2 for a hit effect, and for a vanilla
+special the `skillSFX` equals the effect's own id. **Copy a vanilla row of the same kind and
+change only what you mean to** — generating the row from the vanilla header is the only way
+to be sure the column count has not drifted.
+
 The **effect model** is a normal four-file model named `eff_bts_<stem>_bs01`. The cheapest
 way to an original-looking attack is to clone a vanilla one and repaint the textures it
 references — that is exactly how the *Chaos* mods make greyscale versions of WarGreymon's
