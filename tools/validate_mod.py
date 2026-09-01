@@ -363,6 +363,74 @@ def check_variations(roots: list[Path], rep: Report):
             rep.ok("variations", f"{len(pairs)} statline(s), each with a design row")
 
 
+STRUCTURE_DIRS = [
+    r"D:/SteamLibrary/steamapps/common/SimpleDSCSModManager-develop/SimpleDSCSModManager/sdmmlib/dscstools/structures",
+    r"E:/SteamLibrary/steamapps/common/Digimon Story Cyber Sleuth Complete Edition/SimpleDSCSModManager/sdmmlib/dscstools/structures",
+]
+INT_LIMITS = {"byte": (-128, 127), "ubyte": (0, 255), "short": (-32768, 32767),
+              "ushort": (0, 65535), "int": (-2**31, 2**31 - 1), "uint": (0, 2**32 - 1)}
+SOFT_START = re.compile(r"^\[[A-Za-z_][A-Za-z0-9_]*::")
+INT_RE = re.compile(r"-?\d+")
+FLOAT_RE = re.compile(r"-?\d+(\.\d+)?([eE]-?\d+)?")
+
+
+def check_types(roots: list[Path], rep: Report):
+    """Check every cell against DSCSTools' declared column type and width.
+
+    This is the closest thing to a dry-run pack: a value that is the wrong type, or an
+    integer too wide for its field, is what makes the build fail or write garbage.
+    """
+    sdir = next((Path(d) for d in STRUCTURE_DIRS if Path(d).is_dir()), None)
+    if sdir is None:
+        rep.warn("types", "DSCSTools structures/ not found - type check skipped")
+        return
+    bad, cells, sheets = [], 0, 0
+    for root in roots:
+        for f in sorted(root.rglob("*.csv")):
+            rel = f.relative_to(root).as_posix()
+            m = re.match(r"(?:data|text|message)/([^/]+)\.mbe/(.+)\.csv$", rel)
+            if not m:
+                continue
+            sfile = sdir / f"{m.group(1)}.json"
+            if not sfile.is_file():
+                continue
+            try:
+                spec = json.loads(sfile.read_text(encoding="utf-8")).get(m.group(2))
+            except Exception:
+                continue
+            if spec is None:
+                bad.append(f"{rel}: no sheet '{m.group(2)}' in {m.group(1)}.json")
+                continue
+            sheets += 1
+            cols = list(spec.items())
+            for ri, r in enumerate(read_csv(f)[1], 1):
+                if not r:
+                    continue
+                if len(r) != len(cols):
+                    bad.append(f"{rel} row {ri}: {len(r)} cells, structure declares {len(cols)}")
+                    continue
+                for (name, typ), raw in zip(cols, r):
+                    cells += 1
+                    v = raw.strip()
+                    if not v or SOFT_START.match(v):
+                        continue
+                    if typ in INT_LIMITS:
+                        if not INT_RE.fullmatch(v):
+                            bad.append(f"{rel} row {ri} '{name}' ({typ}): {v!r} is not an integer")
+                            continue
+                        lo, hi = INT_LIMITS[typ]
+                        if not lo <= int(v) <= hi:
+                            bad.append(f"{rel} row {ri} '{name}' ({typ}): {v} outside [{lo}, {hi}]")
+                    elif typ == "float" and not FLOAT_RE.fullmatch(v):
+                        bad.append(f"{rel} row {ri} '{name}' (float): {v!r} is not numeric")
+    for b in bad[:12]:
+        rep.fail("types", b)
+    if len(bad) > 12:
+        rep.fail("types", f"...and {len(bad)-12} more type problems")
+    if not bad and cells:
+        rep.ok("types", f"{cells} cell(s) across {sheets} sheet(s) match their declared type and width")
+
+
 def check_build_json(mod: Path, roots: list[Path], rep: Report):
     """Any custom-named asset must be renamed by BUILD.json or it installs dead."""
     bp = mod / "BUILD.json"
@@ -467,6 +535,7 @@ def validate(mod: Path, db: Path, van: dict, quiet: bool) -> Report:
     check_softcodes(mod, rep)
     check_battles(roots, db, van, rep)
     check_variations(roots, rep)
+    check_types(roots, rep)
     check_build_json(mod, roots, rep)
     check_scripts(roots, db, rep)
     return rep

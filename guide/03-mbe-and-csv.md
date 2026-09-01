@@ -60,6 +60,20 @@ not that the merge rule changes — a loose CSV still defaults to `mberecord_mer
 the **target path no longer exists**: SDMM merges your file into `data/charname/Sheet1.csv`,
 a path the game never reads. The file installs, the build succeeds, nothing changes.
 
+## The types are declared, and they are checkable
+
+DSCSTools ships a JSON per table under `sdmmlib/dscstools/structures/` (103 of them) giving
+every column's **type**: `int`, `short`, `ushort`, `byte`, `float`, `string`. A value that is
+the wrong type, or an integer too wide for its field, is what makes a build fail or write
+garbage — and nothing in the CSV itself warns you. `short` tops out at **32767**, so an id
+you invent can silently overflow.
+
+```bash
+python tools/validate_mod.py "<mod folder>"   # checks every cell against its declared type
+```
+
+That is the closest thing to a dry-run pack available without launching SDMM.
+
 ## Rules for editing
 
 1. Never open these in Excel.

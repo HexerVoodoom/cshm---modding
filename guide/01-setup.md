@@ -14,9 +14,9 @@ Verified on 2026-09-01 (`python tools/cshm.py env`):
 - One existing mod in `mods/`: `Kyoko` (a texture/model swap; `METADATA.json` +
   `modfiles/images/`). Useful as the smallest real example of a mod folder.
 
-> The game executable was **not** found in the install root during setup. If the game will
-> not launch, verify files through Steam before blaming a mod. `UNVERIFIED` whether this is
-> a broken install or the exe simply lives elsewhere on this setup.
+> The game executable is **`app_digister/Digimon Story CS.exe`**, not in the install root —
+> which is where `DSCSModLoader.dll` lives too. An earlier note in this guide wrongly said it
+> was missing.
 
 ## Tools
 

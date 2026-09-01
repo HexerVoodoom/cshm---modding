@@ -27,9 +27,8 @@ file when something moves from claim to fact.
 
 ## Pipeline
 
-- **The missing executable.** The game root on this install has no `.exe`. Either the
-  install is incomplete or it lives somewhere unexpected. Must be settled before anything
-  can be tested in game.
+- ~~The missing executable~~ — **answered**: it is `app_digister/Digimon Story CS.exe`,
+  alongside `DSCSModLoader.dll`, not in the install root.
 - **Save location and backup procedure** for the Steam release — not yet confirmed on this
   machine.
 - **CYMIS** installer scripts: unsummarised, untested.
