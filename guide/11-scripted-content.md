@@ -86,8 +86,39 @@ this.Flag.Check(id);  this.Flag.Set(id);  this.Flag.Clear(id);
 
 ## Custom battles
 
-**A new battle is a cloned battle script.** Copy the vanilla base `battle_0000.txt` to
-`battle_<yourNumber>.txt` and change what you want — in practice that is one line:
+**The number you pass to `Encount` is the `mon_cpl` coupling id, and the battle script must
+be named `battle_<that same id>.txt`.** That is the whole binding — there is no third table.
+So a custom fight is two files plus a row:
+
+| Piece | Holds |
+|---|---|
+| `mon_cpl/Coupling` row, id = N | `digi1`–`digi6`, `level1`–`level6`, `variation1`–`variation6`. Unused slots are `-1`. |
+| `mon_para` / `mon_para_hard`, matching `(type, variation)` | That variation's stats, and `unk16` = its `battle_ai` id. |
+| `battle_ai` row | The enemy's moveset: repeating **7-column slots** of `skill, 0, 0, weight, 0, 0, 0`, empty slots `-1`. Restricting an enemy to two moves is two slots. |
+| `script64/battle_N.txt` | Cloned from vanilla `battle_0000.txt`. |
+
+Because the variation is part of the key, a sparring or scripted version of a Digimon can
+have its own stats and AI **without touching the normal one**.
+
+### Rules a script can attach to a combatant
+
+`Battle_Boot()` is where vanilla puts these. `charId` 6 is the first enemy; the party is
+0–2.
+
+```squirrel
+this.Battle.AttachFixDamage(6, 1, 1);   // every hit lands for exactly 1  (-1,-1 disables)
+this.Battle.AttachUndead(6, true);      // cannot be killed
+this.Battle.AttachNoDamage(6, true);    // takes nothing at all
+this.Battle.AttachAlwaysHit(6, true);   // never misses
+this.Battle.AttachAlwaysAvoid(6, true); // never gets hit
+this.Battle.SetTurnStartActionCommand(skillId, 6, -1);  // force a move each turn
+```
+
+`AttachFixDamage`'s three arguments are `(charId, min, max)` — vanilla uses `(6, 0, 1)` and
+`(6, 100, 100)`. This is how a boss gets special rules without a single table edit.
+
+**Copy the base script.** Take vanilla `battle_0000.txt` to
+`battle_<yourNumber>.txt` and change what you want — often just one line:
 
 ```squirrel
 this.Battle.SetBGM("M802", "M804");

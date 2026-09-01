@@ -76,6 +76,16 @@ table you change **both** games.
 Adding an evolution means editing **both** `evolution_next_para` (the target) and
 `evolution_condition_para` (the gate). Changing one alone is a classic half-mod.
 
+### Items — the effect columns
+
+`item_para/table.csv` `effectType` selects the effect and `effectValue` its size:
+**0** restore HP · **1** restore SP · **2** **grant EXP, where `effectValue` is EXP × 10**
+(`25000` is the +2,500 EXP Brave Point E) · **3** CAM · **4** warp home · **5** party memory ·
+**6** restore 50% HP+SP to all · **7**/**8** fully restore HP/SP · **9** return to the dungeon
+entrance · **10–17** change personality · **20–25** reduce an enhanced stat · **-1** no
+`item_para` effect (farm goods and hardcoded items). `inBattle` / `inOverworld` gate where it
+can be used.
+
 ### Items, equipment, shops
 
 `item_para` (`table`: prices, `effectType/effectValue`, farm effects, medal fields, skin
