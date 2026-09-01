@@ -33,6 +33,22 @@ for _s in (sys.stdout, sys.stderr):
         pass
 
 SOFTCODE = re.compile(r"\[[A-Za-z_]+::")
+SOFTCODE_CAT = re.compile(r"\[([A-Za-z_][A-Za-z0-9_]*)::")
+
+# SDMM keeps one JSON per softcode category. A category that is not there does not resolve,
+# so the build either fails or writes a broken ID.
+SOFTCODE_DIRS = [
+    r"D:/SteamLibrary/steamapps/common/SimpleDSCSModManager-develop/SimpleDSCSModManager/softcodes",
+    r"E:/SteamLibrary/steamapps/common/Digimon Story Cyber Sleuth Complete Edition/SimpleDSCSModManager/softcodes",
+]
+
+
+def softcode_categories() -> set:
+    for d in SOFTCODE_DIRS:
+        p = Path(d)
+        if p.is_dir():
+            return {f.stem for f in p.glob("*.json")}
+    return set()
 MODEL_EXT = {".name", ".skel", ".geom", ".anim", ".phys", ".detr", ".note", ".sprk", ".navi"}
 TABLE_DIRS = ("data", "text", "message")
 
@@ -232,6 +248,118 @@ def check_pairs(seen: set, rep: Report):
             rep.warn("paired-edit", f"{a if a in seen else b} edited but {missing} is not - {why}")
 
 
+def check_softcodes(mod: Path, rep: Report):
+    """Every [Category::...] must be a registered category or an alias onto one."""
+    valid = softcode_categories()
+    if not valid:
+        rep.add("WARN", "softcodes", "SDMM softcode registry not found - category check skipped")
+        return
+    aliases = {}
+    ap = mod / "ALIASES.json"
+    if ap.is_file():
+        try:
+            aliases = json.loads(ap.read_text(encoding="utf-8-sig"))
+        except Exception as exc:
+            rep.fail("aliases", f"ALIASES.json does not parse: {exc}")
+    for name, target in aliases.items():
+        root = str(target).split("::")[0].strip()
+        if root not in valid:
+            rep.fail("softcodes", f"alias [{name}::] maps onto '{root}', which is not a "
+                                  "registered softcode category")
+    known = valid | {k.rstrip(":") for k in aliases}
+    seen = {}
+    skip = {".img", ".geom", ".name", ".skel", ".anim", ".phys", ".psd", ".request",
+            ".dds", ".png", ".mvgl", ".detr", ".note", ".sprk", ".navi"}
+    for f in mod.rglob("*"):
+        if not f.is_file() or f.suffix.lower() in skip:
+            continue
+        try:
+            body = f.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for cat in SOFTCODE_CAT.findall(body):
+            seen.setdefault(cat, f.relative_to(mod).as_posix())
+    for cat, where in sorted(seen.items()):
+        if cat not in known:
+            rep.fail("softcodes",
+                     f"[{cat}::] is not a registered softcode category and not an alias "
+                     f"(first seen in {where}) - it will not resolve")
+    if seen and not any(r[0] == "FAIL" and r[1] == "softcodes" for r in rep.rows):
+        rep.ok("softcodes", f"{len(seen)} softcode categor{'y' if len(seen)==1 else 'ies'} all resolve")
+
+
+ENCOUNT = re.compile(r"this\.Battle\.Encount\(\s*(\d+)\s*,")
+BATTLE_SCRIPT = re.compile(r"^battle_(\d+)\.txt$")
+
+
+def check_battles(roots: list[Path], db: Path, van: dict, rep: Report):
+    """A custom battle is a mon_cpl coupling id plus a battle_<that id>.txt. Both or neither.
+
+    Script names are zero-padded (`battle_0048.txt` for coupling `48`), so everything here
+    is compared as an integer.
+    """
+    def num(s):
+        try:
+            return int(s)
+        except (TypeError, ValueError):
+            return None
+
+    couplings, scripts, called = set(), set(), {}
+    vanilla_cpl = {num(x) for x in
+                   van.get("mon_cpl", {}).get("sheets", {}).get("Coupling", (None, 0, set()))[2]}
+    vanilla_cpl.discard(None)
+    for root in roots:
+        p = root / "data/mon_cpl.mbe/Coupling.csv"
+        if p.is_file():
+            couplings |= {n for r in read_csv(p)[1] if r and (n := num(r[0])) is not None}
+        d = root / "script64"
+        if d.is_dir():
+            for s in d.glob("*.txt"):
+                m = BATTLE_SCRIPT.match(s.name)
+                if m:
+                    scripts.add(int(m.group(1)))
+                for e in ENCOUNT.findall(s.read_text(encoding="utf-8", errors="replace")):
+                    called.setdefault(int(e), s.name)
+
+    def vanilla_script(n):
+        return any((db / f"script64/battle_{n:0{w}d}.txt").is_file() for w in (1, 4, 5, 6))
+
+    for c in sorted(couplings):
+        if c not in scripts and not vanilla_script(c):
+            rep.fail("battle", f"mon_cpl adds coupling {c} but no battle script defines that "
+                               "fight - Battle.Encount on it has nothing to run")
+        if c in vanilla_cpl:
+            rep.warn("battle", f"coupling {c} overwrites a vanilla encounter")
+    for s in sorted(scripts):
+        if s not in couplings and s not in vanilla_cpl:
+            rep.fail("battle", f"battle_{s}.txt ships but nothing defines coupling {s} - "
+                               "the fight has no enemies")
+    for n, where in sorted(called.items()):
+        if n not in couplings and n not in vanilla_cpl:
+            rep.fail("battle", f"{where} calls Battle.Encount({n}) but no coupling {n} exists")
+    if couplings or scripts:
+        rep.ok("battle", f"{len(couplings)} coupling(s), {len(scripts)} battle script(s), wired")
+
+
+def check_variations(roots: list[Path], rep: Report):
+    """Every (type, variation) in mon_para wants a matching mon_design_para row."""
+    for root in roots:
+        mp = root / "data/mon_para.mbe/Monster.csv"
+        dp = root / "data/mon_design_para.mbe/Monster.csv"
+        if not mp.is_file():
+            continue
+        pairs = {(r[0], r[1]) for r in read_csv(mp)[1] if len(r) > 1}
+        design = {(r[0], r[1]) for r in read_csv(dp)[1] if len(r) > 1} if dp.is_file() else set()
+        missing = sorted(pairs - design)
+        if missing and dp.is_file():
+            rep.warn("variations",
+                     "mon_para has (type, variation) "
+                     + ", ".join(f"{a}/{b}" for a, b in missing[:4])
+                     + " with no mon_design_para row - 836 of 837 vanilla pairs have one")
+        elif pairs and design:
+            rep.ok("variations", f"{len(pairs)} statline(s), each with a design row")
+
+
 def check_build_json(mod: Path, roots: list[Path], rep: Report):
     """Any custom-named asset must be renamed by BUILD.json or it installs dead."""
     bp = mod / "BUILD.json"
@@ -323,6 +451,9 @@ def validate(mod: Path, db: Path, van: dict, quiet: bool) -> Report:
         return rep
     seen = check_tables(roots, van, rep)
     check_pairs(seen, rep)
+    check_softcodes(mod, rep)
+    check_battles(roots, db, van, rep)
+    check_variations(roots, rep)
     check_build_json(mod, roots, rep)
     check_scripts(roots, db, rep)
     return rep

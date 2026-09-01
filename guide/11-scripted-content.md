@@ -87,14 +87,17 @@ this.Flag.Check(id);  this.Flag.Set(id);  this.Flag.Clear(id);
 ## Custom battles
 
 **The number you pass to `Encount` is the `mon_cpl` coupling id, and the battle script must
-be named `battle_<that same id>.txt`.** That is the whole binding — there is no third table.
+be named `battle_<that same id>.txt`** — the script name is zero-padded, so coupling `48` is
+`battle_0048.txt`. Pick an id that is free in vanilla `mon_cpl` **and inside the 0–9999
+range**: that is what Loud Kuyuki's quest mod does, and nothing proves the game accepts the
+600000+ ids one other mod uses. That is the whole binding — there is no third table.
 So a custom fight is two files plus a row:
 
 | Piece | Holds |
 |---|---|
 | `mon_cpl/Coupling` row, id = N | `digi1`–`digi6`, `level1`–`level6`, `variation1`–`variation6`. Unused slots are `-1`. |
 | `mon_para` / `mon_para_hard`, matching `(type, variation)` | That variation's stats, and `unk16` = its `battle_ai` id. |
-| `battle_ai` row | The enemy's moveset: repeating **7-column slots** of `skill, 0, 0, weight, 0, 0, 0`, empty slots `-1`. Restricting an enemy to two moves is two slots. |
+| `battle_ai` row | The enemy's moveset. **Slots are 7 columns wide starting at column index 8** (`Unk5`), with the **skill at +0 and its weight at +3**; empty slots are `-1`. Verified against 982 of 983 vanilla rows. The first slot (index 8) is empty in 906/983 rows — start at index 15. Weights are percentages and the used ones sum to 100. |
 | `script64/battle_N.txt` | Cloned from vanilla `battle_0000.txt`. |
 
 Because the variation is part of the key, a sparring or scripted version of a Digimon can
