@@ -351,7 +351,8 @@ def main(argv=None):
     worst = 0
     for m in mods:
         rep = validate(m, db, van, args.quiet)
-        if rep.failures or not args.quiet:
+        noteworthy = any(r[0] != "PASS" for r in rep.rows)
+        if noteworthy or not args.quiet:
             print(rep.render(args.quiet))
         worst = max(worst, 1 if rep.failures else 0)
     return worst
