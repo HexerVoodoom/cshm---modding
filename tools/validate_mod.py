@@ -270,7 +270,10 @@ def check_softcodes(mod: Path, rep: Report):
     seen = {}
     skip = {".img", ".geom", ".name", ".skel", ".anim", ".phys", ".psd", ".request",
             ".dds", ".png", ".mvgl", ".detr", ".note", ".sprk", ".navi"}
-    for f in mod.rglob("*"):
+    scan_root = mod / "modfiles"
+    if not scan_root.is_dir():
+        return
+    for f in scan_root.rglob("*"):
         if not f.is_file() or f.suffix.lower() in skip:
             continue
         try:
@@ -407,6 +410,7 @@ def check_scripts(roots: list[Path], db: Path, rep: Report):
     every redefined function is a function this mod takes from every other mod.
     """
     import difflib
+    clobber_total = {}
     for root in roots:
         d = root / "script64"
         if not d.is_dir():
@@ -436,10 +440,19 @@ def check_scripts(roots: list[Path], db: Path, rep: Report):
                          f"~{changed} lines. Every other mod touching any of them loses. "
                          "Use a .sqmod.")
             else:
-                rep.warn("script-clobber",
-                         f"{f.name}: redefines {len(clobbered)} vanilla function(s) "
-                         f"({', '.join(clobbered[:3])}{'…' if len(clobbered) > 3 else ''}) - "
-                         "these become global for the session")
+                clobber_total[f.name] = len(clobbered)
+    _summarise_clobber(clobber_total, rep)
+
+
+def _summarise_clobber(clobber_total, rep):
+    if not clobber_total:
+        return
+    worst = sorted(clobber_total.items(), key=lambda kv: -kv[1])[:3]
+    total = sum(clobber_total.values())
+    rep.warn("script-clobber",
+             f"{len(clobber_total)} script(s) redefine {total} vanilla function(s) in total "
+             f"(worst: {', '.join(f'{n} in {k}' for k, n in worst)}) - each becomes global "
+             "for the session")
 
 
 def validate(mod: Path, db: Path, van: dict, quiet: bool) -> Report:
