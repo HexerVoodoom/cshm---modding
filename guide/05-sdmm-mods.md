@@ -152,6 +152,19 @@ one target, or to put a softcode in a filename.
 The third element is a rule argument — here, the padding character for `mberecord_append`.
 Paths are always relative to `modfiles/`, even under `"FormatVersion": 2`.
 
+### The line every evolution mod needs
+
+By default your mod **replaces** a Digimon's whole evolution list. Pherakki's standing
+recommendation is to append instead, so two mods that both add an evolution to the same
+Digimon coexist (up to the game's max of 6):
+
+```json
+"data/evolution_next_para.mbe/digimon.csv": ["data/evolution_next_para.mbe/digimon.csv", "mberecord_append"],
+```
+
+One target may appear more than once with different sources and rules — see
+[../reference/discord-research.md](../reference/discord-research.md#mod-compatibility--the-buildjson-line-every-evolution-mod-needs).
+
 ## Distribution
 
 Ship a zip, in one of two shapes:

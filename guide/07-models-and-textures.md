@@ -17,7 +17,17 @@ A model is a set of files sharing one stem. Four are required:
 | `.navi` | no | Used in "autoran" models; possibly another walk path. `UNVERIFIED` |
 
 Import/export with [Blender-Tools-for-DSCS](https://github.com/Pherakki/Blender-Tools-for-DSCS)
-— point it at the `.name` file.
+— point it at the `.name` file. **It works on Blender 2.80-2.91 only, not 3.x or later.**
+
+Two rules that decide whether a model works at all:
+
+- **`name_hash` is a mesh slot.** When a mesh loads, every loaded mesh sharing its hash is
+  removed. That is the costume system, and it is how a replacement mesh claims a slot.
+- **Bones are addressed by index, not name.** A donor skeleton with its bones in a different
+  order deforms wrongly and nothing warns you.
+
+Both, plus every export error and its cause, are in
+[../reference/model-porting.md](../reference/model-porting.md).
 
 ## Naming is the API — with one big exception
 

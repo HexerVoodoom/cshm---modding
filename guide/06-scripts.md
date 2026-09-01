@@ -45,6 +45,22 @@ replacement.
 (From the skip-dialogue mod; `globalSkipTextMode` and `globalSkipAnimMultiplier` are
 globals added by a companion `.txt` script.)
 
+## The scoping rule that bites
+
+Loading a script **dumps its contents into the root table with no cleanup** until the player
+returns to the main menu or loads a save. Redefining a function replaces it globally *and
+permanently for that session* — walk into a room whose script redefines a base function and
+every later caller gets that version. This is why vanilla scripts redefine every function
+they use, and it is the strongest argument for `.sqmod` over appended `.txt`.
+
+Battle scripts run off a base script and fire, in order: `Battle_Init()` (BGM starts here),
+`Battle_Boot()`, `Battle_Start()`, `Battle_Command()`, `Battle_Turn_End()`, then
+`Battle_Victory()` / `Battle_Defeat()`. Nothing fires when the action menu opens.
+
+Print a debug message with `this.INFO_WINDOW(id)` against `text/info_message.mbe/Sheet1.csv`.
+The API reference is DSCSTools' `docs/squirrel/builtin/`; the commonly used calls are
+collected in [../reference/discord-research.md](../reference/discord-research.md#squirrel-scripting).
+
 ## Practice
 
 - **Prefer `.sqmod` over `.txt` whenever you are modifying vanilla behaviour.** Appending a

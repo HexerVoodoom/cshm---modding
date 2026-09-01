@@ -120,6 +120,26 @@ want, but under `mberecord_overwrite` it blanks the line in game.
 `message/` holds 1451 per-scene conversation tables (`d0101`, `battle_1020`, …), plus
 `data/subtitle_*` for the pre-rendered movies.
 
+## Decoded `unk` columns
+
+The community decoded a good number of these. They are collected, with attribution, in
+[../reference/discord-research.md](../reference/discord-research.md#decoded-columns) — the
+highlights:
+
+- `digimon_common_para`: `unk1` / `fieldGuideId` / `unk19` / `unk20` are the **per-region
+  Field Guide numbers** (JP / US / EU / ASIA); `unk3` is generation sorting.
+- `mon_para/Monster` `unk16` = `battle_ai`.
+- `map_encount_param(_add)/Field`: `unk1` is the map ID, `unk6`-`unk15` are ten slots of
+  **(coupling ID, quest flag, trigger chance %)**. A **coupling** is an enemy group of up to
+  six enemies, defined in `mon_coupling_para`.
+- `join_digimon_para`: `unk1` join level, `unk2` conditions, `unk3`-`unk6` four moves,
+  `unk7` starting ABI.
+- `battle_effect/effect.csv` `unk15` = Sound Effect ID into `battle_se`.
+
+**The upstream source of truth for column names is DSCSTools' `structures/` folder.** Update
+it and re-extract and your CSV headers change — which is why two people can disagree about a
+column: one has a stale dump.
+
 ## Before you edit anything
 
 Run `python tools/cshm.py head <table>` and read the real header. Column meanings in this

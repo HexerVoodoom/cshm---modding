@@ -1,5 +1,10 @@
 # 09 — Open questions
 
+> **2026-09-01: several entries below were answered** by the archived Discord channels. See
+> [../reference/discord-research.md](../reference/discord-research.md) and
+> [../reference/model-porting.md](../reference/model-porting.md). What remains open is marked
+> in the "still open" section at the bottom.
+
 Everything here is unproven. Do not build on it without checking first, and update this
 file when something moves from claim to fact.
 
@@ -48,3 +53,17 @@ file when something moves from claim to fact.
   custom entries).
 - **Which Blender-Tools-for-DSCS build is authoritative** — 2.92 has both `Blender-Tools-for-DSCS`
   and `-develop` installed.
+
+
+## Still open after the Discord sweep (2026-09-01)
+
+- **`this.Battle.SetParameter` indexing is disputed.** Loud Kuyuki: party = 1,2,3, enemies
+  6+, max HP/SP at 0/1. GrowaSowa: party = 0,1,2, with 2 = max HP and 3 = max SP. Test.
+- **Attachment/weapon animations** (weapons, sabres, accessories) misbehave through
+  Blender-Tools while working in Pherakki's C++ model editor. Unresolved as of Jul 2022;
+  reproducers were Beelzemon and chr680.
+- **No script hook for the battle action menu opening.** Uncle Jon never found one.
+- **What `shader_hex` selects**, and what the two integers in each sampler triple mean.
+- **`#dscs-3d-modelling` from Jul 2022 to Mar 2023** was not scraped, nor `#dscs-tools`,
+  `#dscs-beta_tests`, `#dscs-mod_*`, nor the live `#modding` / `#projects` scrollback.
+- **The `join () takes exactly one argument (2 given)` build error** — still open upstream.

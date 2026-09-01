@@ -86,6 +86,24 @@ the CSV programmatically.
 Unsolved as of 2026-09-01. Reported against `item_para.mbe/table.csv`; SydMontague's first
 suspicion is a syntax error in a mod JSON. Bisect by removing table folders one at a time.
 
+## Blender-Tools will not import or export
+
+It supports **Blender 2.80-2.91 only**. Above 3.0 it does not work. Then, in order: did you
+select the collection before exporting; is a mesh empty or unrigged; are there zero-weight
+vertex groups; is every mesh parented to the same armature. Full table in
+[../reference/model-porting.md](../reference/model-porting.md#exporting--the-errors-and-what-they-mean).
+
+## The model explodes in game
+
+The mesh's shader was never configured ("explosive model syndrome"), or — on metallic meshes
+— tangent vectors were not exported. Blender also silently attaches colour maps to meshes
+that should not have them, which breaks models in game.
+
+## Geometry disappears when a mod loads
+
+Two meshes share a `name_hash`. A loading mesh removes every loaded mesh with the same hash;
+that is the costume system, and it deletes whatever you did not intend to replace.
+
 ## An imported model renders black or untextured
 
 Three known causes: a `.001` suffix on a texture name in Blender; file extensions left inside
