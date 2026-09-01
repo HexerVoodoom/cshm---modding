@@ -29,14 +29,28 @@ Two rules that decide whether a model works at all:
 Both, plus every export error and its cause, are in
 [../reference/model-porting.md](../reference/model-porting.md).
 
-## Naming is the API — with one big exception
+## Naming is the API — and `BUILD.json` is how you satisfy it
 
-The game locates vanilla models by filename: `chr009` is Digimon 9 because ID 9 is 9.
+The game locates models **by filename**: `chr009` is Digimon 9 because ID 9 is 9. There is no
+table that says "Digimon 9 uses this model". A custom Digimon's files must end up named
+`chr<its id>.*` or the game will never load them.
 
-**A *new* Digimon does not have to follow that.** Custom models ship under an arbitrary
-stem (`Samudramon_FB.name`) and the tables point at it. `[Digimon::Key::filename()]` exists
-for the lookups the game derives from the ID — effect and camera models — not to force your
-model into a `chrNNN` name. See [10-new-digimon.md](10-new-digimon.md).
+You do **not** name your files that way in the mod folder, because the ID is not known until
+SDMM assigns it. You author them under any readable stem and let **`BUILD.json` rename them
+at build time**:
+
+```json
+{ "{0}[Digimon::MyMon::filename()]{1}": {
+    "BuildSteps": "{0}MyMon{1}",
+    "Variables": [{ "Regex": "(.*)MyMon(.*)" }] } }
+```
+
+That one rule installs `MyMon.name`, `MyMon_ba01.anim`, `cam_MyMon_bs01_pc.geom`,
+`eff_bts_MyMon_bs02.skel` and every other match under the resolved `chr###` name.
+
+**A custom model with no rename rule installs under its literal name and is dead weight.**
+Full mechanics, including the one-file-at-a-time form and the icon paths, in
+[../reference/mod-patterns.md](../reference/mod-patterns.md#0-buildjson-is-the-rename-map--the-thing-that-makes-everything-else-possible).
 
 | Prefix | What |
 |---|---|

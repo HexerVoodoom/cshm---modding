@@ -60,9 +60,14 @@ Agents live in `../../.claude/agents/`. They share this guide as their ground tr
 | `cshm-researcher` | "What controls X?" — read-only sweeps over 3025 sheets. Answers, not dumps. |
 | `cshm-table-surgeon` | Edits `.csv` records inside a mod folder. Never touches the install. |
 | `cshm-mod-builder` | End-to-end: request → validated SDMM mod folder. |
-| `cshm-script-modder` | Squirrel: `.txt` concat and `.sqmod` surgical edits. |
-| `cshm-art` | Models (`.name/.skel/.geom/.anim`) and `.img` textures. |
+| `cshm-script-modder` | Squirrel: interactive NPCs, custom battles, `.sqmod` surgical edits. |
+| `cshm-porter` | Bringing a model in from another game and making it load and deform. |
+| `cshm-vfx-voice` | Custom skills: the data chain, effect models, cameras, sound and voice. |
+| `cshm-art` | Models and `.img` textures in general. |
 | `cshm-qa` | The verdict before a mod is built or shown to the user. Read-only. |
+
+Skills: `cshm-modding` (orientation), `cshm-new-digimon` (the full add-a-Digimon procedure),
+`cshm-scripted-npc` (NPCs, dialogue, battles, playable-character swaps).
 
 The rule that holds them together: **no agent reports success on a claim it has not run a
 command to prove.**

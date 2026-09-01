@@ -6,16 +6,39 @@ Digimon: **Samudramon_FB** (Gaioumon: Itto Mode) and **duramon_sword_form** (Dur
 Sword Form). That mod is the ground truth for this file; the SDMM PDF documents the
 mechanism but not the recipe.
 
-## The correction that matters
+## First: the mod does not work without a `BUILD.json`
 
-**Model file stems are arbitrary.** A new Digimon's model is *not* `chrNNN`. The reference
-mod ships `Samudramon_FB.name/.skel/.geom/.anim` and the game finds it because the tables
-point at that stem. `[Digimon::Key::filename()]` exists for the cases where the game
-*derives* a filename from the ID (effect and camera lookups), not to force your model to be
-called `chr700`.
+The game finds models **by filename** and a custom Digimon's files must end up as
+`chr<id>.*`. You cannot write that name yourself — the ID does not exist until SDMM assigns
+it. So you author under a readable stem and **`BUILD.json` renames everything at build
+time**. The reference mod's whole rename is three rules:
 
-Textures, however, are still ID-named where they replace a vanilla slot
-(`images/chr700a01.img`), alongside freely-named custom ones (`images/samudra_a01.img`).
+```json
+{
+  "images/ui_chara_icon_[Digimon::Samudramon_FB::4ID()].img": "images/ui_chara_icon_Samudramon_FB.img",
+  "images/dot[Digimon::Samudramon_FB::3ID()].img":            "images/dot_Samudramon_FB.img",
+  "{0}[Digimon::Samudramon_FB::filename()]{1}": {
+      "BuildSteps": "{0}Samudramon_FB{1}",
+      "Variables": [{ "Regex": "(.*)Samudramon_FB(.*)" }] }
+}
+```
+
+The pattern rule catches the base model, every overlay animation, every attack camera and
+every effect model in one line. The two icon rules exist because those paths do **not**
+contain the stem — the party icon is keyed by 4ID and the Field Guide dot by 3ID.
+
+Add the compatibility line for evolutions in the same file:
+
+```json
+"data/evolution_next_para.mbe/digimon.csv": ["data/evolution_next_para.mbe/digimon.csv", "mberecord_append"]
+```
+
+After a build, SDMM writes an `INDEX.json` showing exactly which softcodes resolved where.
+That is the fastest way to debug a rename that did not happen.
+
+Textures that replace a vanilla slot are still ID-named (`images/chr700a01.img`); freely
+named custom ones (`images/samudra_a01.img`) are fine because the model references them by
+name.
 
 ## The table set
 
@@ -97,6 +120,34 @@ files rather than redistributed copies.
 Beyond the v0.1 PDF list, the reference mod uses `DigimonText`, `SkillText` and
 `SkillEffect`, and calls `::4ID()` and `::filename()`. So the installed SDMM's softcode set
 is **wider than the v0.1 documentation**. Read the mod, not just the PDF.
+
+## Giving it its own skill, effect and voice
+
+A skill is four things: a data row, an effect model, its textures, and optionally a voice.
+
+```
+data/battle_command/Command.csv         the skill: Power, DamageType, TargetType,
+                                        NumAttacksMin/Max, SP Cost, SpeedUse, Accuracy,
+                                        critChance, HPabsorb, StatusType/Effect/Chance, ...
+data/battle_command_effect/effect.csv   skillID -> casterSkillEffectIDs, targetSkillEffectIDs
+data/battle_effect/effect.csv           effectID -> skillEffModel, skillSFX (-> battle_se)
+text/skill_name, text/skill_content_name
+```
+
+The **effect model** is a normal four-file model named `eff_bts_<stem>_bs01`. The cheapest
+way to an original-looking attack is to clone a vanilla one and repaint the textures it
+references — that is exactly how the *Chaos* mods make greyscale versions of WarGreymon's
+and MetalSeadramon's attacks. Copy every `eff_*.img` the model names, recolour, ship them
+under a distinguishing prefix, and point the cloned model at the new names.
+
+Passive skills are `battle_support_skill/support_skill.csv`, a fully named 58-column table
+covering every stat, element, status chance and resistance, plus `EXP Boost`, `Drop Rate`,
+`Scan Rate`, `moveFirst` and `HP to ATK`.
+
+For a **voice line**, build an AFS2 with `DSCSToolsCLI --afs2pack`, ship it at the mod root
+under `"FormatVersion": 2`, register it in `data/voice.csv`, and add the same row to **both**
+`battle_voice` and `battle_voice_add`. Step-by-step in
+[../reference/mod-patterns.md](../reference/mod-patterns.md#3-a-recoloured-skill-with-its-own-voice--chaos-generals).
 
 ## Order of work
 
