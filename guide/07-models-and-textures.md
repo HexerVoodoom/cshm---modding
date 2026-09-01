@@ -19,10 +19,14 @@ A model is a set of files sharing one stem. Four are required:
 Import/export with [Blender-Tools-for-DSCS](https://github.com/Pherakki/Blender-Tools-for-DSCS)
 — point it at the `.name` file.
 
-## Naming is the API
+## Naming is the API — with one big exception
 
-The game locates models by filename. There is no table that says "Digimon 9 uses this
-model"; it is `chr009` because ID 9 is 9.
+The game locates vanilla models by filename: `chr009` is Digimon 9 because ID 9 is 9.
+
+**A *new* Digimon does not have to follow that.** Custom models ship under an arbitrary
+stem (`Samudramon_FB.name`) and the tables point at it. `[Digimon::Key::filename()]` exists
+for the lookups the game derives from the ID — effect and camera models — not to force your
+model into a `chrNNN` name. See [10-new-digimon.md](10-new-digimon.md).
 
 | Prefix | What |
 |---|---|
