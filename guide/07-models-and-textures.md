@@ -82,6 +82,17 @@ The `Kyoko` mod on this install is the reference example: it ships six files int
 Stranger texture-format table does **not** transfer — do not apply it here. Check an
 existing vanilla `.img` header before encoding a replacement.
 
+## The exporter's custom-property contract
+
+Blender-Tools-for-DSCS does not infer material settings - it reads **custom properties** off
+each material and object. A model exported without them is wrong or refused. The known-good
+baseline, the NLA-strip requirement and the loose-parts split script are all in
+[../reference/community.md](../reference/community.md).
+
+Two traps reported in the community for a model that imports black or untextured: a `.001`
+suffix on a texture name, and file extensions left inside the texture names in the model
+(check with a hex editor - they should not be there).
+
 ## Shaders
 
 `shaders/` is plaintext **Cg** — a deprecated language predating HLSL. The game runs the Cg

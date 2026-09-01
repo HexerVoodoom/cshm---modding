@@ -43,6 +43,26 @@ error.
 | `battle_command_effect.mbe/effect.csv` | Links the skill to `[SkillEffect::…]`. |
 | `battle_effect.mbe/effect.csv` | Points the effect at the model `eff_bts_[Digimon::Key::filename()]_bs01`. |
 
+### Tables the reference mod did NOT ship, but the 253-mod corpus does
+
+Frequency across every mod on this machine (`tools/scan_mods.py`, see
+[../reference/mod-corpus.csv](../reference/mod-corpus.csv)) shows the community's real
+new-Digimon set is wider:
+
+| Table | Mods using it | What it is for |
+|---|---|---|
+| `ui_mon_param_info` | 87 | The Field Guide / party stat panel entry. |
+| `same_animation_data` | 83 | Declares which model an animation set is borrowed from. |
+| `battle_support_skill` | 79 | The support skill. Paired with `text/support_skill_name` (61) and `text/support_skill_content_name` (61). |
+| `battle_voice` + `battle_voice_add` | 42 each | Battle voice lines — `_add` is the Hacker's Memory half. |
+| `battle_se` | 25 | Battle sound effects. |
+| `model_position_offset` | 21 | Positional offset of the model. |
+| `model_default_effect` | 18 | Default attached effect. |
+| `mon_cpl` | 6 | Rare; unstudied. |
+
+`model_attach_para` is the single most-patched table in the whole corpus (312 sheets), which
+matches three sheets per Digimon.
+
 ### `text/`
 
 `charname`, `digimon_book_explanation`, `skill_name`, `skill_content_name` — every language

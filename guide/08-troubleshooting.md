@@ -74,3 +74,20 @@ You targeted `DSDB` (2.7 GB). Target `DSDBP`.
 2. Verify files through Steam. (On this install the executable was not found in the game
    root during setup — see [01-setup.md](01-setup.md).)
 3. Only then suspect a specific mod.
+
+
+## SDMM says "some file is malformatted"
+
+**ModernCSV.** It writes a trailing comma after the last column. Use LibreOffice, or write
+the CSV programmatically.
+
+## SDMM build fails with `join () takes exactly one argument (2 given)`
+
+Unsolved as of 2026-09-01. Reported against `item_para.mbe/table.csv`; SydMontague's first
+suspicion is a syntax error in a mod JSON. Bisect by removing table folders one at a time.
+
+## An imported model renders black or untextured
+
+Three known causes: a `.001` suffix on a texture name in Blender; file extensions left inside
+the texture names in the model file (check with a hex editor); the material's diffuse colour
+node set to `0 0 0`. See [07-models-and-textures.md](07-models-and-textures.md).
