@@ -70,12 +70,10 @@ file when something moves from claim to fact.
 
 ## Raised by the squad-alpha audit (2026-09-01)
 
-- **Does SDMM match an MBE sheet by filename?** 124 corpus mods write
-  `text/charname.mbe/Sheet1.csv` instead of `Digimon Names.csv` and appear to work, which
-  suggests the name is ignored for a **single-sheet** table. Unproven, and it says nothing
-  about multi-sheet tables. Testable: build one mod each way and look at the name in game.
-- **`text/skill_name.mbe` has two sheets** — `Sheet1.csv` and `skill name.csv`, both 935 rows.
-  Which one the game reads is unknown. Patch both until someone checks.
+- ~~Does SDMM match an MBE sheet by filename?~~ — **answered by building it both ways.**
+  A `text/` sheet in a mod must be `Sheet1.csv`. With `Digimon Names.csv` the merged
+  `charname` gained nothing; renamed to `Sheet1.csv` the rows appeared. The extraction's sheet
+  names are not the build's.
 - **`digimon_common_para` `unk6, 8, 10, 12, 14`** are described upstream as per-language name
   sort values, but they are stored on the Digimon instance, which does not fit. Unresolved.
 - **`model_attach_para/npc.csv` has a 5-cell composite key** (per SDMM's

@@ -8,8 +8,7 @@ Ordered by how often the cause is the real one. The dangerous entries are the on
 | Cause | Check |
 |---|---|
 | Folder named `charname` instead of `charname.mbe` — read as a loose CSV, not a table sheet. | `ls modfiles/data` |
-| Sheet filename does not match the vanilla sheet. `text/charname.mbe`'s sheet is
-**`Digimon Names.csv`**, not `Sheet1.csv` — a very common miss. | `python tools/cshm.py sheets <table>` |
+| A `text/` sheet is not named `Sheet1.csv`. The **extraction** may call it something else (`charname` unpacks as `Digimon Names.csv`) but the **build merges text tables under `Sheet1`** — rows in any other filename are dropped silently. | `ls <mod>/text/*.mbe/` |
 | Wrong ID form: bare vs 4ID vs `chrNNN`. | [04-data-tables.md](04-data-tables.md#the-id-systems--the-most-common-silent-failure) |
 | Composite key (e.g. `mon_para` is `(type, variation)`) — you patched the wrong row. | `python tools/cshm.py head mon_para` |
 | A third-party `.mvgl` in `resources/` overrides you via DSCSModLoader. | [../reference/archives.md](../reference/archives.md) |

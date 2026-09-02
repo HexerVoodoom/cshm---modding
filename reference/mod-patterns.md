@@ -70,7 +70,7 @@ modfiles/
   data/join_digimon_para_add.mbe/party.csv    <- the partner it can summon
   data/multi_select_para.mbe/para.csv         <- the dialogue menu structure
   text/multi_select_text.mbe/para.csv         <- the menu's words
-  text/charname.mbe/Sheet1.csv                <- the speaker's name
+  text/charname.mbe/Sheet1.csv                <- the speaker's name (always Sheet1 in a mod)
   message/mod_<yourname>npc.mbe/Sheet1.csv    <- its lines
   script64/t3001_add.txt                      <- what it DOES
 ```

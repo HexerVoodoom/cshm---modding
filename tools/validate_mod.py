@@ -195,9 +195,15 @@ def check_sheet(sheet: Path, table: str, v: dict, rep: Report):
     label = f"{table}/{sheet.stem}"
     if sheet.stem not in v["sheets"]:
         real = sorted(v["sheets"])
-        if len(real) == 1:
-            # Unproven either way: the corpus is full of working mods that name a
-            # single-sheet table's CSV "Sheet1.csv". Renaming costs nothing, so advise it.
+        if v["folder"] == "text":
+            # PROVEN by a real build: the extraction may name a text sheet something else
+            # (charname unpacks as "Digimon Names.csv"), but SDMM merges text tables under
+            # "Sheet1". Naming it after the extraction makes the rows vanish silently.
+            rep.fail("sheet-name",
+                     f"{label}.csv: text tables must use Sheet1.csv in a mod. The extraction "
+                     f"calls this sheet {real[0]!r}, but the build merges under 'Sheet1' and "
+                     "your rows are dropped without a warning.")
+        elif len(real) == 1:
             rep.warn("sheet-name",
                      f"{label}.csv is not the vanilla sheet name ({real[0]}.csv). "
                      "The table has one sheet so SDMM probably tolerates this, but match it.")

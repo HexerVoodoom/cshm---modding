@@ -91,16 +91,18 @@ matches three sheets per Digimon.
 `charname`, `digimon_book_explanation`, `skill_name`, `skill_content_name` — every language
 column filled with the same string in the reference mod.
 
-> **Watch the sheet name.** Vanilla `text/charname.mbe` has a single sheet, `Digimon
-> Names.csv`. 124 mods in the corpus write `Sheet1.csv` there and appear to work, so SDMM
-> probably tolerates a wrong name when the table has only one sheet — `UNVERIFIED`, and
-> matching costs nothing.
+> **A `text/` sheet in a mod is always `Sheet1.csv`** — proven by an actual build.
 >
-> Where it genuinely bites is a table with **several** sheets, because then the merge cannot
-> guess. `text/skill_name.mbe` has **two** — `Sheet1.csv` and `skill name.csv`, both 935 rows.
-> Which one the game reads is unknown: patch both.
+> The extraction and the build disagree. `text/charname.mbe` **unpacks** as
+> `Digimon Names.csv`, and `text/skill_name.mbe` unpacks with an extra `skill name.csv`, but
+> SDMM **merges every text table under `Sheet1`**. Name your file after the extraction and
+> your rows are dropped with no warning and no error — the build succeeds and the Digimon is
+> nameless.
 >
-> Check first: `python "D:/digimon modding claude/cshm-modding/tools/cshm.py" sheets <table>`.
+> This was confirmed by building this guide's own mod twice: with `Digimon Names.csv` the
+> merged `charname` came out at 1984 rows with no new entry; renamed to `Sheet1.csv` it came
+> out with `1007,"Mojoceramon"` and `10001,"Mojoceramon"` present. It also explains the
+> corpus: **124 mods use `Sheet1`, none use `Digimon Names`.**
 
 ## The model set
 
