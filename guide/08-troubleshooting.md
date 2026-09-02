@@ -39,13 +39,16 @@ otherwise the keystroke lands in whatever window stole focus.
 
 | Works | Does not work |
 |---|---|
-| Title screen, menus, save select (Enter, arrows) | **Moving the character** -- WASD and arrows do nothing, tap or 2.5 s hold |
-| Opening the Digivice menu -- **a long press (~1.5 s) of scan code 0x48**; short taps do nothing, which is why a tap-based sweep misses it | |
+| Title screen and save select (Enter, Down) | **Moving the character** -- WASD and arrows do nothing, tap or 1.8 s hold |
+| Opening the Digivice menu -- **a long press (~1.5 s) of scan code 0x48**; short taps do nothing, which is why a tap-based sweep misses it | **Rotating the Digivice ring** -- the selection stays on whatever it opened with, so no menu entry can be reached |
+| Closing it again -- **Escape** (Backspace does not; a movement test run after a failed Backspace is measuring a menu, not a field, and will wrongly "prove" movement is dead) | |
 | Camera (G, T) | |
 
 The Digivice menu has no travel option -- travel in this game is done at in-world terminals --
-so with no character movement, **any NPC that is not already on screen is unreachable without
-a gamepad.** Check for one with `Get-CimInstance Win32_PnPEntity` before planning an in-game test.
+so with no character movement and no way to move the ring, **nothing beyond the title, the
+save list and the bare menu can be reached without a gamepad** -- not an NPC, not even the
+Field Guide. Check for a controller with `Get-CimInstance Win32_PnPEntity` before planning
+any in-game test; without one, plan to hand the test to the user.
 
 ## The title screen can crash on its own
 
