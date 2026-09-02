@@ -37,18 +37,25 @@ otherwise the keystroke lands in whatever window stole focus.
 
 **What the keyboard can and cannot do**, measured across ~60 keys:
 
-| Works | Does not work |
+**The arrow keys are EXTENDED keys.** `keybd_event` needs `KEYEVENTF_EXTENDEDKEY` (0x0001)
+as well as the scancode flag -- `0x0009` down, `0x000B` up. Send `0x0008` alone and you have
+pressed the *numpad* equivalent, not the arrow. This single mistake cost this session a wrong
+published conclusion ("the character cannot be moved"), because numpad-8 happens to open the
+Digivice menu, so the "movement" tests were driving a menu.
+
+| Works | Notes |
 |---|---|
-| Title screen and save select (Enter, Down) | **Moving the character** -- WASD and arrows do nothing, tap or 1.8 s hold |
-| Opening the Digivice menu -- **a long press (~1.5 s) of scan code 0x48**; short taps do nothing, which is why a tap-based sweep misses it | **Rotating the Digivice ring** -- the selection stays on whatever it opened with, so no menu entry can be reached |
-| Closing it again -- **Escape** (Backspace does not; a movement test run after a failed Backspace is measuring a menu, not a field, and will wrongly "prove" movement is dead) | |
-| Camera (G, T) | |
+| Title screen and save select | Enter, Down |
+| **Walking the character** | the four arrows, **extended flag required**; hold ~2 s per step |
+| Opening the Digivice menu | long press (~1.5 s) of scancode `0x48` **without** the extended flag (numpad 8); short taps do nothing, so a tap-based sweep misses it |
+| Closing it | **Escape** -- Backspace does not. Verify with a screenshot: a test run against a menu you think you closed measures nothing |
+| Camera | G, T |
 
 The Digivice menu has no travel option -- travel in this game is done at in-world terminals --
-so with no character movement and no way to move the ring, **nothing beyond the title, the
-save list and the bare menu can be reached without a gamepad** -- not an NPC, not even the
-Field Guide. Check for a controller with `Get-CimInstance Win32_PnPEntity` before planning
-any in-game test; without one, plan to hand the test to the user.
+The Digivice ring's selection could not be rotated from the keyboard, so menu entries such as
+the Field Guide stayed out of reach; the world itself, however, is fully walkable once the
+arrows are sent correctly, and travel in this game happens at in-world terminals rather than
+through a menu.
 
 ## The title screen can crash on its own
 
