@@ -48,6 +48,40 @@ by Dantles1992** ([gamebanana 379118](https://gamebanana.com/mods/379118)).
 Credits from that ReadMe: SydMontague, Pherakki and LoudKuyuki for the tools; Dantles1992
 for the new-Digimon research. Community Discord: `https://discord.gg/hb6qXc3U`.
 
+## SimpleDSCSModManager was broken, and why
+
+**Fixed 2026-09-01.** Both SDMM installs crashed on startup with
+
+```
+File "CoreOperations\PathManager.py", line 179, in game_executable_loc
+AttributeError: 'PathManager' object has no attribute 'self'
+```
+
+The crashlogs in `SimpleDSCSModManager-develop/SimpleDSCSModManager/logs/` go back to
+**11 July 2026**, so nothing could be built for two months.
+
+Cause: `config/config.json` had
+
+```json
+"game_loc": "D:\SteamLibrary\steamapps\common\Digimon Story Cyber Sleuth Complete Edition"
+```
+
+but that folder is an **empty stub** — it contains only `resources/backup`. The real install
+is on **E:** (Steam's `appmanifest_1042550.acf` lives in `E:/SteamLibrary/steamapps`,
+`StateFlags 4`, 5.9 GB). SDMM could not find the executable, and its own error path has a
+typo (`self.self`) that turns "game not found" into a fatal crash instead of a message.
+
+Pointing `game_loc` at the E: install makes it start normally. The original file is kept as
+`config/config.json.bak-before-claude`.
+
+Worth knowing while you are in there: this game keeps **no executable in its root**. Everything
+lives in `app_digister/` — `Digimon Story CS.exe`, `DSCSModLoader.dll`, `steam_api64.dll`,
+`cg.dll`, `opengl32.dll`. An empty-looking game root is normal here.
+
+The profiles in `SimpleDSCSModManager-develop/SimpleDSCSModManager/profiles/*.profile` still
+reference `C:\SteamLibrary\...`, a path that does not exist on this machine, so the saved
+mod selections are stale too.
+
 ## Known problems in the WIP mod
 
 1. **`text/charname.mbe/Sheet1.csv`** — vanilla's sheet is **`Digimon Names.csv`**. Very

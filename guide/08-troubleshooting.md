@@ -68,6 +68,14 @@ don't chase the table.
 
 You targeted `DSDB` (2.7 GB). Target `DSDBP`.
 
+## SDMM crashes on startup with `'PathManager' object has no attribute 'self'`
+
+It cannot find the game. Check `config/config.json` → `game_loc` actually points at the
+install that has `resources/` full of `.mvgl` files — a second, empty Steam library folder for
+the same appid is easy to point at by mistake. SDMM's own error path has a typo, so "game not
+found" surfaces as a fatal crash rather than a message. See
+[../reference/workspace-inventory.md](../reference/workspace-inventory.md).
+
 ## The game will not launch at all
 
 1. Disable all mods in SDMM and build — does vanilla launch?
