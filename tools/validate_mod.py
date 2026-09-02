@@ -526,6 +526,43 @@ def check_build_json(mod: Path, roots: list[Path], rep: Report):
         rep.ok("build-json", "every custom-named asset is covered by a rename rule")
 
 
+def check_mdledit(mod: Path, rep: Report):
+    """`.mdledit` rotations are quaternions, not degrees.
+
+    SDMM asserts only that `rotation` is a 4-element list (plugins/rules/model.py), so a
+    value like [90, 0, 0, 0] -- degrees, written by someone expecting Euler angles -- is
+    accepted and written into the skeleton. It is a quaternion of magnitude 90, and a
+    quaternion-to-matrix conversion that does not normalise scales by |q|^2. Across the
+    mdledits on this machine, 32 of 43 rotations are the identity [1, 0, 0, 0]; every
+    outlier was one mod's, written as degrees.
+
+    Facing is set by `field_npc_para`'s own `rotation` column, so identity is the norm.
+    """
+    import math
+    bad, seen = [], 0
+    for f in (mod / "modfiles").rglob("*.mdledit"):
+        txt = f.read_text(encoding="utf-8", errors="replace")
+        for m in re.finditer(r'"rotation"\s*:\s*\[([^\]]*)\]', txt):
+            raw = [v.strip() for v in m.group(1).split(",")]
+            try:
+                q = [float(v) for v in raw]
+            except ValueError:
+                continue  # a softcode, not a literal
+            seen += 1
+            if len(q) != 4:
+                bad.append((f.name, q, "not 4 elements"))
+            elif abs(math.sqrt(sum(x * x for x in q)) - 1.0) > 0.01:
+                mag = math.sqrt(sum(x * x for x in q))
+                bad.append((f.name, q, f"|q|={mag:.3g}, not a unit quaternion"))
+    if bad:
+        rep.fail("mdledit-rotation",
+                 "; ".join(f"{n}: {q} - {why}" for n, q, why in bad[:3])
+                 + ". .mdledit rotation is a WXYZ quaternion, not Euler degrees - use "
+                   "[1, 0, 0, 0] and set facing with field_npc_para's rotation column.")
+    elif seen:
+        rep.ok("mdledit-rotation", f"{seen} .mdledit rotation(s) are unit quaternions")
+
+
 def check_renamed_stem_refs(mod: Path, roots: list[Path], rep: Report):
     """A table cell must not name a stem that BUILD.json renames away.
 
@@ -670,6 +707,7 @@ def validate(mod: Path, db: Path, van: dict, quiet: bool) -> Report:
     check_types(roots, rep)
     check_build_json(mod, roots, rep)
     check_renamed_stem_refs(mod, roots, rep)
+    check_mdledit(mod, rep)
     check_scripts(roots, db, rep)
     return rep
 

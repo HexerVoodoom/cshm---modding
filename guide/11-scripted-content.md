@@ -25,9 +25,22 @@ digits and prefixes `npc_`.
                   "position": [3, -0.3, 5], "rotation": [1, 0, 0, 0], "scale": [1, 1, 1] } }
    ```
 
-   Rotation is a quaternion in **WXYZ** order. SDMM expands one `.mdledit` into four edits
-   (`mdledit_name/skel/geom/anim`). If the map has a `.phys`, `.request` it rather than
-   shipping a copy.
+   Rotation is a quaternion in **WXYZ** order — **not Euler degrees**. SDMM asserts only
+   that it is a 4-element list, so `[90, 0, 0, 0]` is accepted, written into the skeleton,
+   and is a quaternion of magnitude 90; a conversion that does not normalise scales by
+   |q|². Use the identity `[1, 0, 0, 0]` and set the facing with `field_npc_para`'s own
+   `rotation` column. Of the 43 `.mdledit` rotations on this machine, 32 are the identity
+   and every outlier was one mod writing degrees. `tools/validate_mod.py` now fails on a
+   non-unit quaternion.
+
+   **The `model` cell is not renamed by `BUILD.json`.** If your NPC uses a model your mod
+   adds, the cell must carry the softcode — `[Digimon::MyMon::filename()]`, not the stem
+   you named the file. `BUILD.json` renames files; cell contents are yours to get right,
+   and `model` is a string column so a wrong stem is legal and silent.
+
+   SDMM expands one `.mdledit` into four edits (`mdledit_name/skel/geom/anim`) and appends
+   the `npc_NNNN` bone if the skeleton lacks it, so you do not have to add it yourself. If
+   the map has a `.phys`, `.request` it rather than shipping a copy.
 
    **Do not guess the coordinates.** The map's `p` model already tells you every valid spot:
    `<map>p.name` lists the locators (`start_NN` player spawns, `npc_NNNN` NPC slots,
