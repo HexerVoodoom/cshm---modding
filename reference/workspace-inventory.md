@@ -82,6 +82,37 @@ The profiles in `SimpleDSCSModManager-develop/SimpleDSCSModManager/profiles/*.pr
 reference `C:\SteamLibrary\...`, a path that does not exist on this machine, so the saved
 mod selections are stale too.
 
+## The mod set the save depends on
+
+**Installing a mod set replaces the whole set.** SDMM rebuilds `DSDBP` from exactly what is
+ticked, so anything previously installed and not ticked is *removed* — and a save that
+contains a Digimon or item from a removed mod will crash on load.
+
+The `New Profile` in the **develop** install (`SimpleDSCSModManager-develop/.../profiles/`)
+has these **12 mods enabled**, and this is the set to restore before loading an older save:
+
+```
+ARESTERDRAMON
+DSCS-Mod-UnlockHackingSkills-master
+DigiDestined
+Playable Rina
+UI
+atlur kabuterimon blue
+battle_cam
+chaosmon_ulforce_veedramon_and_jesmon_c7b72xxx
+easy_hacking_skills_8f96d
+exp_item
+gmtyrano_mod
+no_red_outline
+```
+
+Four of them add new Digimon — `ARESTERDRAMON`, `chaosmon_ulforce_veedramon_and_jesmon`,
+`gmtyrano_mod`, `Playable Rina` — which is what a save is most likely to depend on.
+
+Caveat: those profile entries store paths beginning `C:\SteamLibrary\...`, a drive that does
+not exist here, so SDMM may not map the saved ticks onto the mods folder. The names above are
+the reliable part; tick them by hand.
+
 ## Known problems in the WIP mod
 
 1. **`text/charname.mbe/Sheet1.csv`** — vanilla's sheet is **`Digimon Names.csv`**. Very

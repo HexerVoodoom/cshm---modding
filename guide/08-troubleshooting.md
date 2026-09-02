@@ -75,6 +75,13 @@ the same appid is easy to point at by mistake. SDMM's own error path has a typo,
 found" surfaces as a fatal crash rather than a message. See
 [../reference/workspace-inventory.md](../reference/workspace-inventory.md).
 
+## An existing save crashes after installing mods
+
+Installing replaces the **entire** mod set — SDMM rebuilds `DSDBP` from exactly what is
+ticked, so anything previously installed and now unticked is gone. A save holding a Digimon,
+item or skill from a removed mod crashes on load. Re-tick the mods that save was made with
+and install again. Back the save up before changing the set.
+
 ## The game will not launch at all
 
 1. Disable all mods in SDMM and build — does vanilla launch?
