@@ -526,6 +526,79 @@ def check_build_json(mod: Path, roots: list[Path], rep: Report):
         rep.ok("build-json", "every custom-named asset is covered by a rename rule")
 
 
+def check_renamed_stem_refs(mod: Path, roots: list[Path], rep: Report):
+    """A table cell must not name a stem that BUILD.json renames away.
+
+    BUILD.json renames FILES; it does not rewrite CSV cell contents. So a mod that ships
+    its model as `mymon.geom` and renames it to `[Digimon::MyMon::filename()]` must also
+    write that softcode in any cell naming the model -- `field_npc_para.model`, most
+    obviously. Leave the pre-rename stem in the cell and the row points at a file that is
+    not in the archive under that name: the NPC is placed, is interactable, and has no
+    model. Nothing warns you, because `model` is a string column and any string is legal.
+
+    Caught for real: an NPC row said `chr992` while the 16 model files packed as `chr007`.
+    """
+    bp = mod / "BUILD.json"
+    if not bp.is_file():
+        return
+    try:
+        build = json.loads(bp.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return  # check_build_json already reported it
+
+    # The pre-rename names are the sources: the BuildSteps values, and plain string targets.
+    sources: set[str] = set()
+
+    def harvest(node):
+        if isinstance(node, str):
+            for m in re.finditer(r"[A-Za-z][A-Za-z0-9_]{2,}", node):
+                sources.add(m.group(0))
+        elif isinstance(node, list):
+            for x in node:
+                harvest(x)
+        elif isinstance(node, dict):
+            for k, x in node.items():
+                harvest(x)
+
+    for target, steps in build.items():
+        if SOFT_START.search(target) or "[" in target:
+            harvest(steps)
+
+    # Only stems the mod actually ships as model files can be a live reference.
+    shipped = set()
+    for root in roots:
+        if root.is_dir():
+            for entry in root.iterdir():
+                if entry.is_file() and entry.suffix.lower() in MODEL_EXT:
+                    shipped.add(re.split(r"_", entry.stem)[0])
+    suspects = {x for x in sources if x in shipped}
+    if not suspects:
+        return
+
+    hits = []
+    for csv_path in (mod / "modfiles").rglob("*.csv"):
+        if ".mbe" not in str(csv_path.parent):
+            continue
+        try:
+            _, body = read_csv(csv_path)
+        except Exception:
+            continue
+        for row in body:
+            for cell in row:
+                if cell.strip() in suspects:
+                    rel = csv_path.relative_to(mod / "modfiles").as_posix()
+                    hits.append((rel, cell.strip()))
+    if hits:
+        shown = sorted({f"{r} -> {c}" for r, c in hits})[:4]
+        rep.fail("renamed-stem",
+                 f"{len(hits)} table cell(s) name a stem that BUILD.json renames away "
+                 f"({', '.join(shown)}). BUILD.json renames files, not cell contents - "
+                 "write the softcode in the cell or the row points at a file the archive "
+                 "does not contain under that name.")
+    else:
+        rep.ok("renamed-stem", "no table cell names a pre-rename model stem")
+
+
 FUNC = re.compile(r"^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", re.M)
 
 
@@ -596,6 +669,7 @@ def validate(mod: Path, db: Path, van: dict, quiet: bool) -> Report:
     check_variations(roots, rep)
     check_types(roots, rep)
     check_build_json(mod, roots, rep)
+    check_renamed_stem_refs(mod, roots, rep)
     check_scripts(roots, db, rep)
     return rep
 

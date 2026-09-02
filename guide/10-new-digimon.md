@@ -107,6 +107,10 @@ column filled with the same string in the reference mod.
 > `something went wrong while writing ...\base_resources\text\multi_select_text.mbe`. See
 > [03-mbe-and-csv.md](03-mbe-and-csv.md).
 
+See [../reference/softcodes.md](../reference/softcodes.md) for every softcode method,
+taken from SDMM's own modder's guide — `filename()` gives `chr<3-digit ID>` and `4ID` gives
+the `charname` row, so a Digimon at softcode 7 is `chr007` and `charname` row `1007`.
+
 ## The model set
 
 Per Digimon, at the top level of `modfiles/` (no folder):
