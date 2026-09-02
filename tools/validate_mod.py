@@ -112,14 +112,15 @@ class Report:
 
 
 def vanilla_index(db: Path) -> dict:
-    """{table_name: {"folder":…, "sheets": {sheet: (header, n_rows, ids)}}} for every table."""
+    """{table: {"folder":…, "sheets": {sheet: (header, n_rows, ids)}, "paths": {sheet: Path}}}."""
     idx = {}
     for folder, name, path in iter_tables(db):
         sheets = {}
         for sheet in path.glob("*.csv"):
             header, body = read_csv(sheet)
             sheets[sheet.stem] = (header, len(body), {r[0] for r in body if r})
-        idx[name] = {"folder": folder, "sheets": sheets}
+        paths = {sh.stem: sh for sh in path.glob("*.csv")}
+        idx[name] = {"folder": folder, "sheets": sheets, "paths": paths}
     return idx
 
 
@@ -269,6 +270,7 @@ def check_sheet(sheet: Path, table: str, v: dict, rep: Report):
         rep.fail("encoding", f"{label}.csv is not valid UTF-8 (.mbe sheets must be UTF-8)")
         return
 
+    check_value_range(sheet, table, v, rep)
     widths = {len(r) for r in body if r}
     for w in sorted(widths):
         if w != len(vheader):
@@ -524,6 +526,51 @@ def check_build_json(mod: Path, roots: list[Path], rep: Report):
                  "the game never loads them")
     elif bp.is_file():
         rep.ok("build-json", "every custom-named asset is covered by a rename rule")
+
+
+def check_value_range(sheet: Path, table: str, v: dict, rep: Report):
+    """Warn when a numeric cell lands far outside the range vanilla uses for that column.
+
+    The type gate only proves a value fits its declared width. It said nothing when this
+    repo's own EXP item shipped effectValue 99999990: an int, so legal, but 12x the largest
+    value any vanilla row of that column holds (8000000) and 14x the EXP the experience
+    table needs for max level. Vanilla's ceiling is the evidence of what the engine was
+    built to handle; a value far past it is untested territory, not a bigger number.
+    """
+    key = sheet.stem if sheet.stem in v["sheets"] else None
+    vpath = v.get("paths", {}).get(key) if key else None
+    if vpath is None:
+        return
+    vheader, _, _ = v["sheets"][key]
+    try:
+        _, vrows = read_csv(vpath)
+        header, body = read_csv(sheet)
+    except Exception:
+        return
+    for col, name in enumerate(header):
+        if col >= len(vheader):
+            break
+        vals = [int(r[col].strip()) for r in vrows
+                if col < len(r) and r[col].strip().lstrip("-").isdigit()]
+        if len(vals) < 8:
+            continue
+        vmax, vmin = max(vals), min(vals)
+        span = max(abs(vmax), abs(vmin))
+        if span <= 0:
+            continue
+        for r in body:
+            if col >= len(r):
+                continue
+            c = r[col].strip()
+            if not c.lstrip("-").isdigit():
+                continue
+            n = int(c)
+            if abs(n) > span * 2:
+                rep.warn("value-range",
+                         f"{table}/{sheet.stem}.csv column {name!r}: {n} is more than twice "
+                         f"the largest value vanilla uses there ({vmax}). Legal for the "
+                         "column width, but past what the engine is known to handle.")
+                break
 
 
 def check_mdledit(mod: Path, rep: Report):

@@ -118,8 +118,12 @@ So a custom fight is two files plus a row:
 |---|---|
 | `mon_cpl/Coupling` row, id = N | `digi1`–`digi6`, `level1`–`level6`, `variation1`–`variation6`. Unused slots are `-1`. |
 | `mon_para` / `mon_para_hard`, matching `(type, variation)` | That variation's stats, and `unk16` = its `battle_ai` id. |
-| `battle_ai` row | The enemy's moveset. **Slots are 7 columns wide starting at column index 8** (`Unk5`), with the **skill at +0 and its weight at +3**; empty slots are `-1`. Verified against 982 of 983 vanilla rows. The first slot (index 8) is empty in 906/983 rows — start at index 15. Weights are percentages and the used ones sum to 100. |
+| `battle_ai` row | **Use an id inside the vanilla range (0–9122).** No mod on this machine adds a `battle_ai` row at all — every one patches an existing vanilla id — so there is no precedent for a large one, and an out-of-range id risks an enemy with no AI. The enemy's moveset. **Slots are 7 columns wide starting at column index 8** (`Unk5`), with the **skill at +0 and its weight at +3**; empty slots are `-1`. Verified against 982 of 983 vanilla rows. The first slot (index 8) is empty in 906/983 rows — start at index 15. Weights are percentages and the used ones sum to 100. |
 | `script64/battle_N.txt` | Cloned from vanilla `battle_0000.txt`. |
+
+`multi_select` is the exception to the stay-in-range rule: vanilla tops out at entryID 500,
+but working mods use `3564`, `113564` and `113567`, so a large id there is proven. Match
+that magnitude rather than inventing a bigger one.
 
 Because the variation is part of the key, a sparring or scripted version of a Digimon can
 have its own stats and AI **without touching the normal one**.
