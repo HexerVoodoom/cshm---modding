@@ -191,18 +191,44 @@ def check_tables(roots: list[Path], van: dict, rep: Report):
     return seen_tables
 
 
+_STRUCT_CACHE = {}
+
+
+def structure_sheets(table: str):
+    """Sheet names DSCSTools declares for a table, or None when it has no structure file."""
+    if table in _STRUCT_CACHE:
+        return _STRUCT_CACHE[table]
+    sdir = next((Path(d) for d in STRUCTURE_DIRS if Path(d).is_dir()), None)
+    out = None
+    if sdir is not None:
+        p = sdir / f"{table}.json"
+        if p.is_file():
+            try:
+                out = set(json.loads(p.read_text(encoding="utf-8")))
+            except Exception:
+                out = None
+    _STRUCT_CACHE[table] = out
+    return out
+
+
 def check_sheet(sheet: Path, table: str, v: dict, rep: Report):
     label = f"{table}/{sheet.stem}"
+    # Sheet naming, established by building this repo's own mod and inspecting what SDMM
+    # emitted:
+    #   text/  -> always "Sheet1" (proven: charname unpacks as "Digimon Names.csv" but rows
+    #            in a file of that name are dropped silently; item_name likewise emits Sheet1)
+    #   data/  -> the extraction's own sheet name (proven: digimon_common_para/digimon.csv
+    #            merged correctly)
+    if v["folder"] == "text" and sheet.stem != "Sheet1":
+        rep.fail("sheet-name",
+                 f"{label}.csv: a text/ sheet in a mod must be Sheet1.csv. The extraction "
+                 f"calls it {sorted(v['sheets'])[0]!r}, but SDMM merges text tables under "
+                 "'Sheet1' and rows in any other filename are dropped with no warning.")
+        return
     if sheet.stem not in v["sheets"]:
         real = sorted(v["sheets"])
         if v["folder"] == "text":
-            # PROVEN by a real build: the extraction may name a text sheet something else
-            # (charname unpacks as "Digimon Names.csv"), but SDMM merges text tables under
-            # "Sheet1". Naming it after the extraction makes the rows vanish silently.
-            rep.fail("sheet-name",
-                     f"{label}.csv: text tables must use Sheet1.csv in a mod. The extraction "
-                     f"calls this sheet {real[0]!r}, but the build merges under 'Sheet1' and "
-                     "your rows are dropped without a warning.")
+            pass
         elif len(real) == 1:
             rep.warn("sheet-name",
                      f"{label}.csv is not the vanilla sheet name ({real[0]}.csv). "
@@ -213,7 +239,8 @@ def check_sheet(sheet: Path, table: str, v: dict, rep: Report):
                      f"{len(real)} sheets - the merge cannot guess. Real: "
                      + ", ".join(real))
         return
-    vheader, vrows, vids = v["sheets"][sheet.stem]
+    key = sheet.stem if sheet.stem in v["sheets"] else sorted(v["sheets"])[0]
+    vheader, vrows, vids = v["sheets"][key]
     try:
         header, body = read_csv(sheet)
     except UnicodeDecodeError:

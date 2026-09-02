@@ -50,6 +50,18 @@ The default rule is `mberecord_merge`. You only need to name another rule in a b
 fixed-width array of IDs padded with zeros (evolution lists, shop line-ups). Do not
 hand-edit those with `merge` unless you have counted the padding.
 
+## The extraction's sheet name is not always the build's
+
+**A `text/` sheet in a mod must be named `Sheet1.csv`.** The unpacked tree may call it
+something else — `text/charname.mbe` extracts as `Digimon Names.csv` — but SDMM merges text
+tables under `Sheet1`, and rows in a file named after the extraction are **dropped with no
+error**. Proven by building the same mod both ways: with `Digimon Names.csv` the merged
+`charname` gained nothing; with `Sheet1.csv` the rows appeared. The corpus agrees — 124 mods
+use `Sheet1`, none use `Digimon Names`.
+
+`data/` sheets do use the extraction's name (`digimon_common_para.mbe/digimon.csv` merges
+correctly). `tools/validate_mod.py` enforces both.
+
 ## Where a file goes decides how it is read
 
 - `modfiles/data/charname.mbe/Digimon Names.csv` → recognised as an **MBE table**.
