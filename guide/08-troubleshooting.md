@@ -14,6 +14,32 @@ Ordered by how often the cause is the real one. The dangerous entries are the on
 | A third-party `.mvgl` in `resources/` overrides you via DSCSModLoader. | [../reference/archives.md](../reference/archives.md) |
 | You edited `DSDB/` (the read-only extraction) instead of your mod folder. | — |
 
+
+## Verify the built archive, not just the mod folder
+
+Every gate in `tools/validate_mod.py` runs on the mod **before** the build. That is not the
+same as checking what shipped. The archive is encrypted and each file inside it is
+doboz-compressed, so grepping `DSDBP.steam.mvgl` proves nothing -- a control probe for a
+stem that is definitely there comes back absent too.
+
+`tools/inspect_archive.py` opens it properly. DSCSTools does the work, and although it is a
+Python 3.8 extension, **LibreOffice bundles a complete Python 3.8.10** that loads it, so
+nothing needs installing:
+
+```bash
+python tools/inspect_archive.py --find chr007 t3001p
+python tools/inspect_archive.py --table field_npc_para/t3001 --grep chr007
+python tools/inspect_archive.py --strings text/item_name "Powerful Mojo"
+```
+
+This is the only way to answer "is my model actually in there under the name the table
+says?". It is how the `chr992` NPC bug was confirmed: `chr007` returned 16 files and
+`chr992` returned zero, from the same archive.
+
+Text tables have no DSCSTools structure file, so use `--strings` for those; game text is
+readable once decompressed.
+
+
 ## Half the game's content vanished
 
 You shipped a whole table instead of a patch, or an unrecognised file got the blanket
