@@ -91,18 +91,21 @@ matches three sheets per Digimon.
 `charname`, `digimon_book_explanation`, `skill_name`, `skill_content_name` — every language
 column filled with the same string in the reference mod.
 
-> **A `text/` sheet in a mod is always `Sheet1.csv`** — proven by an actual build.
+> **Name each sheet after SDMM's own extraction**, in
+> `SimpleDSCSModManager/resources/base_resources/` — proven by actual builds, twice.
 >
-> The extraction and the build disagree. `text/charname.mbe` **unpacks** as
-> `Digimon Names.csv`, and `text/skill_name.mbe` unpacks with an extra `skill name.csv`, but
-> SDMM **merges every text table under `Sheet1`**. Name your file after the extraction and
-> your rows are dropped with no warning and no error — the build succeeds and the Digimon is
-> nameless.
+> For the tables this chapter uses that means `Sheet1.csv`: `text/charname.mbe` **unpacks**
+> from DSDB as `Digimon Names.csv`, but SDMM extracts it as `Sheet1.csv`, and a mod file
+> named after the dump has its rows dropped with no warning and no error — the build
+> succeeds and the Digimon is nameless. Confirmed by building this guide's own mod both
+> ways: `Digimon Names.csv` gave a merged `charname` of 1984 rows with no new entry;
+> `Sheet1.csv` gave `1007,"Mojoceramon"` and `10001,"Mojoceramon"`. The corpus agrees —
+> **124 mods use `Sheet1`, none use `Digimon Names`.**
 >
-> This was confirmed by building this guide's own mod twice: with `Digimon Names.csv` the
-> merged `charname` came out at 1984 rows with no new entry; renamed to `Sheet1.csv` it came
-> out with `1007,"Mojoceramon"` and `10001,"Mojoceramon"` present. It also explains the
-> corpus: **124 mods use `Sheet1`, none use `Digimon Names`.**
+> Do **not** generalise that to "text is always Sheet1". `text/multi_select_text.mbe` is
+> `para.csv`, and calling it `Sheet1.csv` fails the whole build with
+> `something went wrong while writing ...\base_resources\text\multi_select_text.mbe`. See
+> [03-mbe-and-csv.md](03-mbe-and-csv.md).
 
 ## The model set
 

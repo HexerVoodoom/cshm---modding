@@ -71,9 +71,11 @@ file when something moves from claim to fact.
 ## Raised by the squad-alpha audit (2026-09-01)
 
 - ~~Does SDMM match an MBE sheet by filename?~~ — **answered by building it both ways.**
-  A `text/` sheet in a mod must be `Sheet1.csv`. With `Digimon Names.csv` the merged
-  `charname` gained nothing; renamed to `Sheet1.csv` the rows appeared. The extraction's sheet
-  names are not the build's.
+  Yes, and the name it matches against is the one in SDMM's own
+  `resources/base_resources/` extraction, not the DSDB dump's. `charname` is `Sheet1.csv`
+  there (the dump says `Digimon Names.csv`, and rows in a file of that name are dropped
+  silently) but `multi_select_text` is `para.csv`, and naming *that* one `Sheet1.csv` fails
+  the build outright. There is no per-folder rule — read `base_resources/`.
 - **`digimon_common_para` `unk6, 8, 10, 12, 14`** are described upstream as per-language name
   sort values, but they are stored on the Digimon instance, which does not fit. Unresolved.
 - **`model_attach_para/npc.csv` has a 5-cell composite key** (per SDMM's

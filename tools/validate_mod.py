@@ -211,25 +211,47 @@ def structure_sheets(table: str):
     return out
 
 
+_BASE_CACHE: dict = {}
+
+
+def base_resource_sheets(folder: str, table: str):
+    """The sheet names SDMM's own base extraction produced for a table, or None.
+
+    This is the authority a mod must match. SDMM reconciles a mod's sheets against this
+    extraction, so a name that differs makes the build fail while writing the table --
+    it is not a silent drop. The DSDB dump's names are NOT interchangeable with these:
+    charname extracts as 'Digimon Names.csv' there and 'Sheet1.csv' here.
+    """
+    key = (folder, table)
+    if key in _BASE_CACHE:
+        return _BASE_CACHE[key]
+    out = None
+    for d in BASE_RESOURCE_DIRS:
+        cand = Path(d) / folder / f"{table}.mbe"
+        if cand.is_dir():
+            out = {f.stem for f in cand.glob("*.csv")}
+            break
+    _BASE_CACHE[key] = out
+    return out
+
+
 def check_sheet(sheet: Path, table: str, v: dict, rep: Report):
     label = f"{table}/{sheet.stem}"
-    # Sheet naming, established by building this repo's own mod and inspecting what SDMM
-    # emitted:
-    #   text/  -> always "Sheet1" (proven: charname unpacks as "Digimon Names.csv" but rows
-    #            in a file of that name are dropped silently; item_name likewise emits Sheet1)
-    #   data/  -> the extraction's own sheet name (proven: digimon_common_para/digimon.csv
-    #            merged correctly)
-    if v["folder"] == "text" and sheet.stem != "Sheet1":
+    # Sheet naming. The authority is SDMM's OWN extraction under resources/base_resources --
+    # not the DSDB dump, whose names differ (charname is "Digimon Names" there, "Sheet1"
+    # here), and not a per-folder rule. Most text/ tables extract as Sheet1, but
+    # multi_select_text extracts as "para": getting this wrong fails the build outright,
+    # with SDMM reporting "something went wrong while writing <table>.mbe".
+    base = base_resource_sheets(v["folder"], table)
+    if base and sheet.stem not in base:
         rep.fail("sheet-name",
-                 f"{label}.csv: a text/ sheet in a mod must be Sheet1.csv. The extraction "
-                 f"calls it {sorted(v['sheets'])[0]!r}, but SDMM merges text tables under "
-                 "'Sheet1' and rows in any other filename are dropped with no warning.")
+                 f"{label}.csv: SDMM's own base extraction of {v['folder']}/{table}.mbe "
+                 f"holds {', '.join(sorted(n + '.csv' for n in base))}. A mod sheet must "
+                 "use one of those names or the build fails while writing the table.")
         return
-    if sheet.stem not in v["sheets"]:
+    if not base and sheet.stem not in v["sheets"]:
         real = sorted(v["sheets"])
-        if v["folder"] == "text":
-            pass
-        elif len(real) == 1:
+        if len(real) == 1:
             rep.warn("sheet-name",
                      f"{label}.csv is not the vanilla sheet name ({real[0]}.csv). "
                      "The table has one sheet so SDMM probably tolerates this, but match it.")
@@ -396,6 +418,10 @@ def check_variations(roots: list[Path], rep: Report):
             rep.ok("variations", f"{len(pairs)} statline(s), each with a design row")
 
 
+BASE_RESOURCE_DIRS = [
+    r"D:/SteamLibrary/steamapps/common/SimpleDSCSModManager-develop/SimpleDSCSModManager/resources/base_resources",
+    r"E:/SteamLibrary/steamapps/common/Digimon Story Cyber Sleuth Complete Edition/SimpleDSCSModManager/resources/base_resources",
+]
 STRUCTURE_DIRS = [
     r"D:/SteamLibrary/steamapps/common/SimpleDSCSModManager-develop/SimpleDSCSModManager/sdmmlib/dscstools/structures",
     r"E:/SteamLibrary/steamapps/common/Digimon Story Cyber Sleuth Complete Edition/SimpleDSCSModManager/sdmmlib/dscstools/structures",

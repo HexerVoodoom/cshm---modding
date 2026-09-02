@@ -50,17 +50,31 @@ The default rule is `mberecord_merge`. You only need to name another rule in a b
 fixed-width array of IDs padded with zeros (evolution lists, shop line-ups). Do not
 hand-edit those with `merge` unless you have counted the padding.
 
-## The extraction's sheet name is not always the build's
+## The DSDB dump's sheet name is not always the build's
 
-**A `text/` sheet in a mod must be named `Sheet1.csv`.** The unpacked tree may call it
-something else — `text/charname.mbe` extracts as `Digimon Names.csv` — but SDMM merges text
-tables under `Sheet1`, and rows in a file named after the extraction are **dropped with no
-error**. Proven by building the same mod both ways: with `Digimon Names.csv` the merged
-`charname` gained nothing; with `Sheet1.csv` the rows appeared. The corpus agrees — 124 mods
-use `Sheet1`, none use `Digimon Names`.
+**The authority is SDMM's own extraction**, under
+`SimpleDSCSModManager/resources/base_resources/`. Your sheet must be named whatever the same
+table is named in there. Nothing else is a rule — not the folder, not the DSDB dump:
 
-`data/` sheets do use the extraction's name (`digimon_common_para.mbe/digimon.csv` merges
-correctly). `tools/validate_mod.py` enforces both.
+```bash
+ls "<SDMM>/resources/base_resources/text/charname.mbe"           # Sheet1.csv
+ls "<SDMM>/resources/base_resources/text/multi_select_text.mbe"  # para.csv
+```
+
+The two failures look nothing alike, so both are worth knowing:
+
+- **`text/charname.mbe`** — the DSDB dump calls it `Digimon Names.csv`, SDMM calls it
+  `Sheet1.csv`. Build it as `Digimon Names.csv` and the rows are **dropped with no error**:
+  the merged table came out at 1984 rows with no new entry. As `Sheet1.csv` the rows appeared.
+- **`text/multi_select_text.mbe`** — SDMM calls it **`para.csv`**, and it is the exception
+  that kills the "text is always Sheet1" shortcut. Name it `Sheet1.csv` and the build does
+  not silently drop anything, it **fails outright**:
+  `Error: something went wrong while writing ...\resources\base_resources\text\multi_select_text.mbe`.
+
+`data/` tables use their own names (`digimon_common_para.mbe/digimon.csv`,
+`battle_ai.mbe/Ai.csv`). `tools/validate_mod.py` checks every sheet against
+`base_resources/` and only falls back to the dump's name when SDMM has not extracted that
+table.
 
 ## Where a file goes decides how it is read
 

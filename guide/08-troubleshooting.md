@@ -8,7 +8,7 @@ Ordered by how often the cause is the real one. The dangerous entries are the on
 | Cause | Check |
 |---|---|
 | Folder named `charname` instead of `charname.mbe` — read as a loose CSV, not a table sheet. | `ls modfiles/data` |
-| A `text/` sheet is not named `Sheet1.csv`. The **extraction** may call it something else (`charname` unpacks as `Digimon Names.csv`) but the **build merges text tables under `Sheet1`** — rows in any other filename are dropped silently. | `ls <mod>/text/*.mbe/` |
+| A sheet is not named what SDMM's own `resources/base_resources/` extraction calls it. Two different failures: a wrong `charname` name (the DSDB dump says `Digimon Names.csv`, SDMM says `Sheet1.csv`) **drops the rows silently**; a wrong `multi_select_text` name (SDMM says `para.csv`) **fails the build** with `something went wrong while writing <table>.mbe`. There is no per-folder rule. | `diff <(ls <mod>/text/*.mbe/) <(ls <SDMM>/resources/base_resources/text/*.mbe/)` |
 | Wrong ID form: bare vs 4ID vs `chrNNN`. | [04-data-tables.md](04-data-tables.md#the-id-systems--the-most-common-silent-failure) |
 | Composite key (e.g. `mon_para` is `(type, variation)`) — you patched the wrong row. | `python tools/cshm.py head mon_para` |
 | A third-party `.mvgl` in `resources/` overrides you via DSCSModLoader. | [../reference/archives.md](../reference/archives.md) |
