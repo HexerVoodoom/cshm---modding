@@ -583,23 +583,30 @@ def check_renamed_stem_refs(mod: Path, roots: list[Path], rep: Report):
     except Exception:
         return  # check_build_json already reported it
 
-    # The pre-rename names are the sources: the BuildSteps values, and plain string targets.
+    # The pre-rename names are the sources of rules whose TARGET is softcoded -- those are
+    # the files that end up under a name the mod cannot write literally. Harvest precisely:
+    # a pattern rule's BuildSteps with its {0}/{1} placeholders stripped, or a plain rule's
+    # source basename. Anything looser matches display names and vanilla stems by accident.
     sources: set[str] = set()
 
-    def harvest(node):
-        if isinstance(node, str):
-            for m in re.finditer(r"[A-Za-z][A-Za-z0-9_]{2,}", node):
-                sources.add(m.group(0))
-        elif isinstance(node, list):
-            for x in node:
-                harvest(x)
-        elif isinstance(node, dict):
-            for k, x in node.items():
-                harvest(x)
+    def source_stems(steps):
+        if isinstance(steps, str):
+            yield steps
+        elif isinstance(steps, list):
+            for x in steps:
+                yield from source_stems(x)
+        elif isinstance(steps, dict):
+            yield from source_stems(steps.get("BuildSteps", []))
 
     for target, steps in build.items():
-        if SOFT_START.search(target) or "[" in target:
-            harvest(steps)
+        if "[" not in target:
+            continue  # target is a literal name; the mod could have written it in a cell
+        for raw in source_stems(steps):
+            name = re.sub(r"\{\d+\}", "", str(raw))       # drop pattern placeholders
+            name = os.path.basename(name.replace("\\", "/"))
+            name = re.split(r"[.]", name)[0]                 # drop the extension
+            if name and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", name):
+                sources.add(name)
 
     # Only stems the mod actually ships as model files can be a live reference.
     shipped = set()
@@ -614,7 +621,10 @@ def check_renamed_stem_refs(mod: Path, roots: list[Path], rep: Report):
 
     hits = []
     for csv_path in (mod / "modfiles").rglob("*.csv"):
-        if ".mbe" not in str(csv_path.parent):
+        parts = csv_path.parts
+        # Only data/ tables reference models. text/ and message/ hold display strings, and
+        # a Digimon's display name legitimately equals the stem its model files use.
+        if ".mbe" not in str(csv_path.parent) or "data" not in parts:
             continue
         try:
             _, body = read_csv(csv_path)
