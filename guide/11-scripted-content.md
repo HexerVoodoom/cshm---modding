@@ -166,6 +166,29 @@ The battle script's own lifecycle is `Battle_Init()` (BGM starts here) → `Batt
 `Battle_Start()` → `Battle_Command()` → `Battle_Turn_End()` → `Battle_Victory()` /
 `Battle_Defeat()`. Nothing fires when the action menu opens.
 
+## `.sqmod` operations, and one that will crash the game
+
+`Utils/SqModImpl.py` in SDMM implements exactly five operations, and nothing else is valid:
+
+| Key | Does |
+|---|---|
+| `add_preamble` + `code` | prepend code to the file |
+| `replace` + `with` | textual replace |
+| `replace_call` + `with` | replace a call anywhere |
+| `replace_call_in_funcs` + `with` + `funcs` | replace a call inside named functions |
+| `extend_function` + `with` | append statements to a named function |
+
+`extend_function` is the one to reach for when you want to add behaviour without shipping a
+12,000-line copy of a vanilla script. Every map script defines a function **named after the
+map** (`t3001.txt` defines `t3001()`), which is its entry point, plus ~130 shared helpers
+that are duplicated into every map file.
+
+**Do not put `Battle.Encount` in that entry function.** It was tried here as a QA harness --
+extending all 47 town entry functions so a sparring battle would start on any map load -- and
+the game builds fine, boots fine, and then **crashes on map load**, twice, with a 52 MB crash
+dump each time. The entry function runs before the field is ready to hand control to a
+battle. Whatever you hook for a test, hook something that runs on player interaction.
+
 ## Items as progress flags
 
 The game's flags are a **finite shared resource, 0–20031**, and every mod draws from the same

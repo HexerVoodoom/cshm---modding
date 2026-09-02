@@ -15,6 +15,47 @@ Ordered by how often the cause is the real one. The dangerous entries are the on
 | You edited `DSDB/` (the read-only extraction) instead of your mod folder. | — |
 
 
+## Driving the game without the mod manager's permission layer
+
+The computer-use resolver on this machine does not recognise the game or SDMM and never
+shows the user a permission dialog, but the game can still be observed and driven from
+PowerShell:
+
+```powershell
+# see the screen
+$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+$bmp=New-Object System.Drawing.Bitmap($b.Width,$b.Height)
+[System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location,[System.Drawing.Point]::Empty,$b.Size)
+
+# send a key -- SCAN CODES (0x0008), not virtual keys, which the game ignores
+[W]::keybd_event(0,0x1C,0x0008,[UIntPtr]::Zero)   # Enter down
+[W]::keybd_event(0,0x1C,0x000A,[UIntPtr]::Zero)   # Enter up
+```
+
+Always re-assert `SetForegroundWindow` and verify `GetForegroundWindow()` before each key --
+otherwise the keystroke lands in whatever window stole focus.
+
+**What the keyboard can and cannot do**, measured across ~60 keys:
+
+| Works | Does not work |
+|---|---|
+| Title screen, menus, save select (Enter, arrows) | **Moving the character** -- WASD and arrows do nothing, tap or 2.5 s hold |
+| Opening the Digivice menu -- **a long press (~1.5 s) of scan code 0x48**; short taps do nothing, which is why a tap-based sweep misses it | |
+| Camera (G, T) | |
+
+The Digivice menu has no travel option -- travel in this game is done at in-world terminals --
+so with no character movement, **any NPC that is not already on screen is unreachable without
+a gamepad.** Check for one with `Get-CimInstance Win32_PnPEntity` before planning an in-game test.
+
+## The title screen can crash on its own
+
+Idling at the title produced an access violation at a constant offset (`0x250ffb`) five times
+in one hour, while leaving the title promptly did not. The same offset appears in a crash
+from before any of this work, so it is not new. A save that loads fine can sit behind a title
+screen that dies first -- when a user reports "my save crashes", check whether the game
+survives the title before concluding anything about the save.
+
+
 ## Verify the built archive, not just the mod folder
 
 Every gate in `tools/validate_mod.py` runs on the mod **before** the build. That is not the
