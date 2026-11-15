@@ -109,9 +109,10 @@ this.Flag.Check(id);  this.Flag.Set(id);  this.Flag.Clear(id);
 
 **The number you pass to `Encount` is the `mon_cpl` coupling id, and the battle script must
 be named `battle_<that same id>.txt`** — the script name is zero-padded, so coupling `48` is
-`battle_0048.txt`. Pick an id that is free in vanilla `mon_cpl` **and inside the 0–9999
-range**: that is what Loud Kuyuki's quest mod does, and nothing proves the game accepts the
-600000+ ids one other mod uses. That is the whole binding — there is no third table.
+`battle_0048.txt`. Pick any id that is free in vanilla `mon_cpl`. **Six-digit ids work** —
+the *Digimon World 2 Challenge* mod on this machine runs a ladder on 603535–603545 and its
+author confirmed it working in game, so the earlier caution here about staying inside 0–9999
+was wrong. That is the whole binding — there is no third table.
 So a custom fight is two files plus a row:
 
 | Piece | Holds |
